@@ -1,0 +1,4 @@
+app
+*.o
+Debug/
+imgui.ini
