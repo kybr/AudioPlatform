@@ -1,6 +1,21 @@
 #ifndef __240C_SYNTHS__
 #define __240C_SYNTHS__
 
+struct Timer {
+  float phase = 0.0f, phase_increment = 0.0f;
+  void frequency(float f) { phase_increment = f / sampleRate; }
+  void period(float p) { phase_increment = 1.0f / (p * sampleRate); }
+  void ms(float p) { period(p / 1000.0f); }
+  bool hasFired() {
+    phase += phase_increment;
+    if (phase > 1.0f) {
+      phase -= 1.0f;
+      return true;
+    }
+    return false;
+  }
+};
+
 struct Phasor {
   float phase = 0.0f, phase_increment = 0.0f;
   void frequency(float f) { phase_increment = f / sampleRate; }
@@ -82,6 +97,7 @@ struct HardSyncMultiSynth : MultiSynth {
   void trigger() {
     if (other == nullptr) return;
     if (sync) other->phase = 0.0f;
+    // if (sync) other->phase = 0.999999f;
   }
 };
 
