@@ -4,7 +4,8 @@
 #include "RtAudio.h"
 
 const unsigned channelCount = 2;
-const unsigned sampleRate = 44100;
+const float sampleRate = 44100.0f;
+const float pi = M_PI;
 const unsigned blockSize = 512;
 
 int cb(void *, void *, unsigned int, double, RtAudioStreamStatus, void *);

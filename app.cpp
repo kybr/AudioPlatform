@@ -113,8 +113,13 @@ struct App : Visual, Audio {
   Line gainLine, tuneLine, offsetLine;
 
   ADSR adsr;
+  Table* sine;
+
+  Biquad biquadLeft, biquadRight;
 
   App() {
+    sine = Table::makeSine();
+
     adsr.loop = true;
     left.other = &right;
     left.frequency(mtof(midi + tuneLine.value));
@@ -130,8 +135,8 @@ struct App : Visual, Audio {
       //
       float gain = gainLine.nextValue();
       float envelope = dbtoa(90.0 * (adsr.nextValue() - 1.0f));
-      out[i + 0] = left.nextValue() * gain * envelope;
-      out[i + 1] = right.nextValue() * gain * envelope;
+      out[i + 0] = biquadLeft(left.nextValue()) * gain * envelope;
+      out[i + 1] = biquadRight(right.nextValue()) * gain * envelope;
     }
     memcpy(b, out, blockSize * channelCount * sizeof(float));
   }
