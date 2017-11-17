@@ -7,100 +7,6 @@
 // this includes all the other headers; go take a look...
 #include "Headers.h"
 
-struct Line {
-  float target, value, milliseconds, increment;
-
-  Line() { set(0.0f, 0.0f, 30.0f); }
-
-  void set() {
-    increment = (target - value) / (sampleRate * (milliseconds / 1000.0f));
-  }
-  void set(float value, float target, float milliseconds) {
-    this->value = value;
-    this->target = target;
-    this->milliseconds = milliseconds;
-    set();  // sets increment based on the above
-  }
-  void set(float target, float milliseconds) {
-    set(value, target, milliseconds);
-  }
-  void set(float target) { set(value, target, milliseconds); }
-
-  bool done() {
-    if (value == target) return true;
-    // if the increment is negative, then we're done when the value is lower
-    // than the target. alternatively, if the increment is positive, then
-    // we're done when the value is greater than the target. in both cases, we
-    // detect overshoot.
-    return (increment < 0) ? (value < target) : (value > target);
-  }
-
-  float nextValue() {
-    float returnValue = value;
-    if (done())
-      value = target;
-    else
-      value += increment;
-    return returnValue;
-  }
-};
-
-struct ADSR {
-  float a, d, s, r;
-  Line attack, decay, release;
-  int state;
-  bool loop = false;
-
-  ADSR() { set(300.0f, 200.0f, 0.7f, 500.0f); }
-
-  void reset() {
-    state = 0;
-    attack.set(0.0f, 1.0f, a);  // value, target, milliseconds
-    decay.set(1.0f, s, d);
-    release.set(s, 0.0f, r);
-  }
-
-  void set(float a, float d, float s, float r) {
-    this->a = a;
-    this->d = d;
-    this->s = s;
-    this->r = r;
-    reset();
-  }
-
-  float nextValue() {
-    switch (state) {
-      case 0:
-        if (attack.done()) state = 1;
-        break;
-      case 1:
-        if (decay.done()) state = 2;
-        break;
-      case 2:
-        if (release.done()) state = 3;
-        break;
-      default:
-        if (loop) reset();
-        break;
-    }
-    switch (state) {
-      case 0:
-        // cout << "a:";
-        return attack.nextValue();
-      case 1:
-        // cout << "d:";
-        return decay.nextValue();
-      case 2:
-        // cout << "r:";
-        return release.nextValue();
-      default:
-        // we are spent; call trigger to start again
-        // cout << "e:";
-        return 0.0f;
-    }
-  }
-};
-
 //
 struct App : Visual, Audio {
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -113,17 +19,21 @@ struct App : Visual, Audio {
   Line gainLine, tuneLine, offsetLine;
 
   ADSR adsr;
-  Table* sine;
+  Sine sineLeft, sineRight;
+  Noise noise;
 
   Biquad biquadLeft, biquadRight;
+  Line biquadLeftLine, biquadRightLine;
 
   App() {
-    sine = Table::makeSine();
-
     adsr.loop = true;
     left.other = &right;
     left.frequency(mtof(midi + tuneLine.value));
     right.frequency(mtof(midi + tuneLine.value));
+
+    sineLeft.frequency(440.0f);
+    sineRight.frequency(440.0f);
+    noise.frequency(440.0f);
   }
 
   void audio(float* out) {
@@ -132,11 +42,17 @@ struct App : Visual, Audio {
       float offset = offsetLine.nextValue();
       left.frequency(mtof(midi + tune));
       right.frequency(mtof(midi + tune + offset));
+      biquadLeft.lpf(biquadLeftLine.nextValue(), 0.7f);
+      biquadRight.lpf(biquadRightLine.nextValue(), 0.7f);
+      sineLeft.increment = left.increment;
+      sineRight.increment = right.increment;
       //
+      float n = noise();
       float gain = gainLine.nextValue();
       float envelope = dbtoa(90.0 * (adsr.nextValue() - 1.0f));
-      out[i + 0] = biquadLeft(left.nextValue()) * gain * envelope;
-      out[i + 1] = biquadRight(right.nextValue()) * gain * envelope;
+      out[i + 0] = biquadLeft(left.nextValue() + sineLeft()) * gain * envelope;
+      out[i + 1] =
+          biquadRight(right.nextValue() + sineRight()) * gain * envelope;
     }
     memcpy(b, out, blockSize * channelCount * sizeof(float));
   }
@@ -161,6 +77,12 @@ struct App : Visual, Audio {
 
       ImGui::SliderInt("Osc left", &left.type, 0, 3);
       ImGui::SliderInt("Osc right", &right.type, 0, 3);
+
+      static float leftF0 = 127.0f, rightF0 = 127.0f;
+      ImGui::SliderFloat("L Filter", &leftF0, 0.0f, 127.0f);
+      ImGui::SliderFloat("R Filter ", &rightF0, 0.0f, 127.0f);
+      biquadLeftLine.set(mtof(leftF0));
+      biquadRightLine.set(mtof(rightF0));
 
       ImGui::PlotLines("Scope left", &b[0], blockSize, 0, nullptr, FLT_MAX,
                        FLT_MAX, ImVec2(0, 0), 2 * sizeof(float));

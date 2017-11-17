@@ -1,16 +1,61 @@
 #ifndef __240C_SYNTHS__
 #define __240C_SYNTHS__
 
-class Table {
-  Table() {}
+struct Phasor {
+  float phase = 0.0f, increment = 0.0f;
+  void frequency(float f) { increment = f / sampleRate; }
+  virtual void trigger() {}
+  virtual float nextValue() {
+    float returnValue = phase;
+    phase += increment;
+    // wrapping phase
+    if (phase > 1.0f) {
+      trigger();
+      phase -= 1.0f;
+    };
+    return returnValue;
+  }
+};
+
+struct FloatArray {
+  float* data = nullptr;
+  unsigned size = 0;
+
+  virtual ~FloatArray() {
+    if (data != nullptr) delete[] data;
+  }
+
+  float operator[](unsigned index) { return data[index]; }
+
+  // a way to resize
+  void zeros(unsigned n) {
+    if (data != nullptr) delete[] data;  // or your have a memory leak
+    data = new float[n];
+    size = n;
+    for (unsigned i = 0; i < n; ++i) data[i] = 0.0f;
+  }
+};
+
+struct FloatArrayWithLinearInterpolation : FloatArray {
+  float operator[](const float index) const {
+    const unsigned i = floor(index);
+    const float x0 = data[i];
+    const float x1 = data[(i == (size - 1)) ? 0 : i];  // looping semantics
+    const float t = index - i;
+    return x0 * t + x1 * (1 - t);
+  }
+};
+
+struct Table {
   float phase = 0.0f;
   float increment = 0.0f;
   float* data;
   unsigned size;
-  Table(float* data, unsigned size) : data(data), size(size) {}
 
- public:
+  Table(float* data = nullptr, unsigned size = 4096) : data(data), size(size) {}
+
   void frequency(float f) { increment = f / sampleRate; }
+
   float operator()() {
     const float _phase = phase * size;
     const unsigned index = floor(_phase);
@@ -22,21 +67,33 @@ class Table {
     if (phase > 1.0f) phase -= 1.0f;
     return v;
   }
-  static Table* makeSine(unsigned size = 10000) {
-    float* data = new float[size];
+};
+
+struct Noise : Table {
+  Noise(unsigned size = 10000) {
+    this->size = size;
+    data = new float[size];
+    for (unsigned i = 0; i < size; ++i)
+      data[i] = 2.0f * (random() / float(RAND_MAX)) - 1.0f;
+  }
+};
+
+struct Sine : Table {
+  Sine(unsigned size = 10000) {
+    this->size = size;
+    data = new float[size];
     const float pi2 = M_PI * 2;
     for (unsigned i = 0; i < size; ++i) data[i] = sinf(i * pi2 / size);
-    return new Table(data, size);
   }
 };
 
 struct Timer {
-  float phase = 0.0f, phase_increment = 0.0f;
-  void frequency(float f) { phase_increment = f / sampleRate; }
-  void period(float p) { phase_increment = 1.0f / (p * sampleRate); }
+  float phase = 0.0f, increment = 0.0f;
+  void frequency(float f) { increment = f / sampleRate; }
+  void period(float p) { increment = 1.0f / (p * sampleRate); }
   void ms(float p) { period(p / 1000.0f); }
   bool hasFired() {
-    phase += phase_increment;
+    phase += increment;
     if (phase > 1.0f) {
       phase -= 1.0f;
       return true;
@@ -45,18 +102,40 @@ struct Timer {
   }
 };
 
-struct Phasor {
-  float phase = 0.0f, phase_increment = 0.0f;
-  void frequency(float f) { phase_increment = f / sampleRate; }
-  virtual void trigger() {}
-  virtual float nextValue() {
-    float returnValue = phase;
-    phase += phase_increment;
-    // wrapping phase
-    if (phase > 1.0f) {
-      trigger();
-      phase -= 1.0f;
-    };
+struct Line {
+  float target, value, milliseconds, increment;
+
+  Line() { set(0.0f, 0.0f, 30.0f); }
+
+  void set() {
+    increment = (target - value) / (sampleRate * (milliseconds / 1000.0f));
+  }
+  void set(float value, float target, float milliseconds) {
+    this->value = value;
+    this->target = target;
+    this->milliseconds = milliseconds;
+    set();  // sets increment based on the above
+  }
+  void set(float target, float milliseconds) {
+    set(value, target, milliseconds);
+  }
+  void set(float target) { set(value, target, milliseconds); }
+
+  bool done() {
+    if (value == target) return true;
+    // if the increment is negative, then we're done when the value is lower
+    // than the target. alternatively, if the increment is positive, then
+    // we're done when the value is greater than the target. in both cases, we
+    // detect overshoot.
+    return (increment < 0) ? (value < target) : (value > target);
+  }
+
+  float nextValue() {
+    float returnValue = value;
+    if (done())
+      value = target;
+    else
+      value += increment;
     return returnValue;
   }
 };
@@ -207,6 +286,62 @@ class Biquad {
     a0 = 1 + alpha;
     a1 = -2 * cos(w0);
     a2 = 1 - alpha;
+  }
+};
+
+struct ADSR {
+  float a, d, s, r;
+  Line attack, decay, release;
+  int state;
+  bool loop = false;
+
+  ADSR() { set(300.0f, 200.0f, 0.7f, 500.0f); }
+
+  void reset() {
+    state = 0;
+    attack.set(0.0f, 1.0f, a);  // value, target, milliseconds
+    decay.set(1.0f, s, d);
+    release.set(s, 0.0f, r);
+  }
+
+  void set(float a, float d, float s, float r) {
+    this->a = a;
+    this->d = d;
+    this->s = s;
+    this->r = r;
+    reset();
+  }
+
+  float nextValue() {
+    switch (state) {
+      case 0:
+        if (attack.done()) state = 1;
+        break;
+      case 1:
+        if (decay.done()) state = 2;
+        break;
+      case 2:
+        if (release.done()) state = 3;
+        break;
+      default:
+        if (loop) reset();
+        break;
+    }
+    switch (state) {
+      case 0:
+        // cout << "a:";
+        return attack.nextValue();
+      case 1:
+        // cout << "d:";
+        return decay.nextValue();
+      case 2:
+        // cout << "r:";
+        return release.nextValue();
+      default:
+        // we are spent; call trigger to start again
+        // cout << "e:";
+        return 0.0f;
+    }
   }
 };
 
