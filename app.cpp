@@ -15,6 +15,8 @@ struct App : Visual, Audio {
   int midi = 60;
   float* b = new float[blockSize];
   HardSyncMultiSynth left, right;
+  bool applyADSR = false;
+  bool includeSine = false;
 
   Line gainLine, tuneLine, offsetLine;
 
@@ -26,7 +28,7 @@ struct App : Visual, Audio {
   Line biquadLeftLine, biquadRightLine;
 
   App() {
-    adsr.loop = true;
+    adsr.loop = false;
     left.other = &right;
     left.frequency(mtof(midi + tuneLine.value));
     right.frequency(mtof(midi + tuneLine.value));
@@ -38,21 +40,26 @@ struct App : Visual, Audio {
 
   void audio(float* out) {
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
-      float tune = tuneLine.nextValue();
-      float offset = offsetLine.nextValue();
+      float tune = tuneLine();
+      float offset = offsetLine();
       left.frequency(mtof(midi + tune));
       right.frequency(mtof(midi + tune + offset));
-      biquadLeft.lpf(biquadLeftLine.nextValue(), 0.7f);
-      biquadRight.lpf(biquadRightLine.nextValue(), 0.7f);
+      biquadLeft.lpf(biquadLeftLine(), 1.7f);
+      biquadRight.lpf(biquadRightLine(), 1.7f);
+
+      //
       sineLeft.increment = left.increment;
       sineRight.increment = right.increment;
+
       //
       float n = noise();
-      float gain = gainLine.nextValue();
-      float envelope = dbtoa(90.0 * (adsr.nextValue() - 1.0f));
-      out[i + 0] = biquadLeft(left.nextValue() + sineLeft()) * gain * envelope;
-      out[i + 1] =
-          biquadRight(right.nextValue() + sineRight()) * gain * envelope;
+      float gain = gainLine();
+
+      float envelope = applyADSR ? dbtoa(90.0 * (adsr() - 1.0f)) : 1.0f;
+      out[i + 0] = biquadLeft(left() + (includeSine ? sineLeft() : 0.0f)) *
+                   gain * envelope;
+      out[i + 1] = biquadRight(right() + (includeSine ? sineRight() : 0.0f)) *
+                   gain * envelope;
     }
     memcpy(b, out, blockSize * channelCount * sizeof(float));
   }
@@ -90,6 +97,8 @@ struct App : Visual, Audio {
                        FLT_MAX, ImVec2(0, 0), 2 * sizeof(float));
 
       ImGui::Checkbox("Hard Sync", &left.sync);
+      ImGui::Checkbox("ADSR", &applyADSR);
+      ImGui::Checkbox("Sine", &includeSine);
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);

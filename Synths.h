@@ -15,6 +15,7 @@ struct Phasor {
     };
     return returnValue;
   }
+  float operator()() { return nextValue(); }
 };
 
 struct FloatArray {
@@ -29,10 +30,14 @@ struct FloatArray {
 
   // a way to resize
   void zeros(unsigned n) {
-    if (data != nullptr) delete[] data;  // or your have a memory leak
-    data = new float[n];
     size = n;
-    for (unsigned i = 0; i < n; ++i) data[i] = 0.0f;
+    if (data != nullptr) delete[] data;  // or your have a memory leak
+    if (n == 0) {
+      data = nullptr;
+    } else {
+      data = new float[n];
+      for (unsigned i = 0; i < n; ++i) data[i] = 0.0f;
+    }
   }
 };
 
@@ -40,39 +45,25 @@ struct FloatArrayWithLinearInterpolation : FloatArray {
   float operator[](const float index) const {
     const unsigned i = floor(index);
     const float x0 = data[i];
-    const float x1 = data[(i == (size - 1)) ? 0 : i];  // looping semantics
+    const float x1 = data[(i == (size - 1)) ? 0 : i + 1];  // looping semantics
     const float t = index - i;
-    return x0 * t + x1 * (1 - t);
+    return x1 * t + x0 * (1 - t);
   }
 };
 
-struct Table {
-  float phase = 0.0f;
-  float increment = 0.0f;
-  float* data;
-  unsigned size;
-
-  Table(float* data = nullptr, unsigned size = 4096) : data(data), size(size) {}
-
-  void frequency(float f) { increment = f / sampleRate; }
+struct Table : Phasor, FloatArrayWithLinearInterpolation {
+  Table(unsigned size = 4096) { zeros(size); }
 
   float operator()() {
-    const float _phase = phase * size;
-    const unsigned index = floor(_phase);
-    const float x0 = data[index];
-    const float x1 = data[(index == (size - 1)) ? 0 : index];
-    const float t = _phase - index;
-    const float v = x0 * t + x1 * (1 - t);
-    phase += increment;
-    if (phase > 1.0f) phase -= 1.0f;
+    const float v = operator[](phase* size);
+    Phasor::nextValue();
     return v;
   }
 };
 
 struct Noise : Table {
   Noise(unsigned size = 10000) {
-    this->size = size;
-    data = new float[size];
+    zeros(size);
     for (unsigned i = 0; i < size; ++i)
       data[i] = 2.0f * (random() / float(RAND_MAX)) - 1.0f;
   }
@@ -80,10 +71,16 @@ struct Noise : Table {
 
 struct Sine : Table {
   Sine(unsigned size = 10000) {
-    this->size = size;
-    data = new float[size];
     const float pi2 = M_PI * 2;
+    zeros(size);
     for (unsigned i = 0; i < size; ++i) data[i] = sinf(i * pi2 / size);
+  }
+};
+
+struct SamplePlayer : Table {
+  SamplePlayer(unsigned size = 10000) {
+    zeros(size);
+    // load sound file
   }
 };
 
@@ -130,6 +127,7 @@ struct Line {
     return (increment < 0) ? (value < target) : (value > target);
   }
 
+  float operator()() { return nextValue(); }
   float nextValue() {
     float returnValue = value;
     if (done())
@@ -142,10 +140,12 @@ struct Line {
 
 struct Saw : Phasor {
   float nextValue() { return Phasor::nextValue() * 2.0f - 1.0f; }
+  float operator()() { return nextValue(); }
 };
 
 struct Square : Phasor {
   float nextValue() { return Phasor::nextValue() > 0.5f ? 1.0f : -1.0f; }
+  float operator()() { return nextValue(); }
 };
 
 struct Impulse : Phasor {
@@ -155,6 +155,7 @@ struct Impulse : Phasor {
     previousOutput = f;
     return f;
   }
+  float operator()() { return nextValue(); }
 };
 
 struct Triangle : Saw {
@@ -162,6 +163,7 @@ struct Triangle : Saw {
     float f = Phasor::nextValue() * 4.0f - 2.0f;
     return (f > 1.0f) ? 2.0f - f : ((f < -1.0f) ? -2.0f - f : f);
   }
+  float operator()() { return nextValue(); }
 };
 
 struct MultiSynth : Phasor {
@@ -180,6 +182,7 @@ struct MultiSynth : Phasor {
         return impulse();
     }
   }
+  float operator()() { return nextValue(); }
 
   float square() { return Phasor::nextValue() > 0.5f ? 1.0f : -1.0f; }
 
@@ -295,7 +298,7 @@ struct ADSR {
   int state;
   bool loop = false;
 
-  ADSR() { set(300.0f, 200.0f, 0.7f, 500.0f); }
+  ADSR() { set(50.0f, 100.0f, 0.7f, 300.0f); }
 
   void reset() {
     state = 0;
@@ -312,6 +315,7 @@ struct ADSR {
     reset();
   }
 
+  float operator()() { return nextValue(); }
   float nextValue() {
     switch (state) {
       case 0:
