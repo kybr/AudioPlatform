@@ -14,6 +14,7 @@ COMPILER += -D__MACOSX_CORE__
 
 INCLUDES += -I/usr/local/include/
 INCLUDES += -Irtaudio/
+INCLUDES += -IAudioFile/
 INCLUDES += -Iimgui/
 INCLUDES += -Iimgui/examples/libs/gl3w/
 INCLUDES += -Iimgui/examples/libs/gl3w/
@@ -27,6 +28,7 @@ LIBRARIES += -lglfw
 
 _:
 	$(COMPILER) -c $(INCLUDES) $(TARGET).cpp
+	$(COMPILER) -c $(INCLUDES) AudioFile/AudioFile.cpp
 	$(COMPILER) -c $(INCLUDES) rtaudio/RtAudio.cpp
 	clang -x c -c $(INCLUDES) imgui/examples/libs/gl3w/GL/gl3w.c
 	$(COMPILER) -c $(INCLUDES) imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp

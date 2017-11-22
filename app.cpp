@@ -16,7 +16,9 @@ struct App : Visual, Audio {
   float* b = new float[blockSize];
   HardSyncMultiSynth left, right;
   bool applyADSR = false;
-  bool includeSine = false;
+  int chooseRight = 0;
+
+  Line rate;
 
   Line gainLine, tuneLine, offsetLine;
 
@@ -26,6 +28,8 @@ struct App : Visual, Audio {
 
   Biquad biquadLeft, biquadRight;
   Line biquadLeftLine, biquadRightLine;
+
+  SamplePlayer samplePlayer = SamplePlayer("/tmp/TingTing.wav");
 
   App() {
     adsr.loop = false;
@@ -47,6 +51,8 @@ struct App : Visual, Audio {
       biquadLeft.lpf(biquadLeftLine(), 1.7f);
       biquadRight.lpf(biquadRightLine(), 1.7f);
 
+      samplePlayer.frequency(rate());
+
       //
       sineLeft.increment = left.increment;
       sineRight.increment = right.increment;
@@ -56,11 +62,29 @@ struct App : Visual, Audio {
       float gain = gainLine();
 
       float envelope = applyADSR ? dbtoa(90.0 * (adsr() - 1.0f)) : 1.0f;
-      out[i + 0] = biquadLeft(left() + (includeSine ? sineLeft() : 0.0f)) *
-                   gain * envelope;
-      out[i + 1] = biquadRight(right() + (includeSine ? sineRight() : 0.0f)) *
-                   gain * envelope;
+
+      float lf = left();
+      out[i + 0] = biquadLeft(lf) * gain * envelope;
+
+      float rf = 0;
+      switch (chooseRight) {
+        default:
+        case 0:
+          rf += right();
+          break;
+        case 1:
+          rf += sineRight();
+          break;
+        case 2:
+          rf += samplePlayer();
+          break;
+      }
+      out[i + 1] = biquadRight(rf) * gain * envelope;
     }
+
+    static unsigned count = 0;
+    if (count++ % 1000 == 0) printf("%f\n", out[0]);
+
     memcpy(b, out, blockSize * channelCount * sizeof(float));
   }
 
@@ -96,9 +120,14 @@ struct App : Visual, Audio {
       ImGui::PlotLines("Scope right", &b[1], blockSize, 0, nullptr, FLT_MAX,
                        FLT_MAX, ImVec2(0, 0), 2 * sizeof(float));
 
+      //
       ImGui::Checkbox("Hard Sync", &left.sync);
       ImGui::Checkbox("ADSR", &applyADSR);
-      ImGui::Checkbox("Sine", &includeSine);
+      ImGui::SliderInt("Choose Right", &chooseRight, 0, 2);
+
+      static float bar = 1.0f;
+      ImGui::SliderFloat("Sampler Player rate", &bar, -2.0f, 2.0f);
+      rate.set(bar);
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);

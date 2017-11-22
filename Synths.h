@@ -3,6 +3,7 @@
 
 struct Phasor {
   float phase = 0.0f, increment = 0.0f;
+  // frequency/samplerate -> "normalized frequency"
   void frequency(float f) { increment = f / sampleRate; }
   virtual void trigger() {}
   virtual float nextValue() {
@@ -78,10 +79,20 @@ struct Sine : Table {
 };
 
 struct SamplePlayer : Table {
-  SamplePlayer(unsigned size = 10000) {
-    zeros(size);
-    // load sound file
+  float playbackRate;
+  SamplePlayer(const char* filePath) {
+    // https://github.com/adamstark/AudioFile
+    AudioFile<float> audioFile;
+    audioFile.load(filePath);
+    playbackRate = audioFile.getSampleRate();
+    zeros(audioFile.getNumSamplesPerChannel());
+    for (int i = 0; i < size; ++i) data[i] = audioFile.samples[0][i];
+    frequency(1.0f);
+
+    printf("%s -> %d samples @ %f Hz\n", filePath, size, playbackRate);
   }
+
+  void frequency(float f) { Phasor::frequency(f * playbackRate / size); }
 };
 
 struct Timer {
@@ -220,13 +231,12 @@ class Biquad {
   float x1, x2, y1, y2;
 
   // filter coefficients
-  float a0, a1, a2;
-  float b0, b1, b2;
+  float b0, b1, b2, a1, a2;
 
  public:
   float operator()(float x0) {
-    float y0 = (b0 / a0) * x0 + (b1 / a0) * x1 + (b2 / a0) * x2 -
-               (a1 / a0) * y1 - (a2 / a0) * y2;
+    // Direct Form 1, normalized...
+    float y0 = b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
     y2 = y1;
     y1 = y0;
     x2 = x1;
@@ -234,7 +244,25 @@ class Biquad {
     return y0;
   }
 
-  Biquad() { lpf(1000.0f, 0.5f); }
+  Biquad() { apf(1000.0f, 0.5f); }
+
+  void normalize(float a0) {
+    b0 /= a0;
+    b1 /= a0;
+    b2 /= a0;
+    a1 /= a0;
+    a2 /= a0;
+    // print();
+  }
+
+  void print() {
+    printf("b0:%f ", b0);
+    printf("b1:%f ", b1);
+    printf("b2:%f ", b2);
+    printf("a1:%f ", a1);
+    printf("a2:%f ", a2);
+    printf("\n");
+  }
 
   void lpf(float f0, float Q) {
     float w0 = 2 * pi * f0 / sampleRate;
@@ -242,9 +270,11 @@ class Biquad {
     b0 = (1 - cos(w0)) / 2;
     b1 = 1 - cos(w0);
     b2 = (1 - cos(w0)) / 2;
-    a0 = 1 + alpha;
+    float a0 = 1 + alpha;
     a1 = -2 * cos(w0);
     a2 = 1 - alpha;
+
+    normalize(a0);
   }
 
   void hpf(float f0, float Q) {
@@ -253,9 +283,11 @@ class Biquad {
     b0 = (1 + cos(w0)) / 2;
     b1 = -(1 + cos(w0));
     b2 = (1 + cos(w0)) / 2;
-    a0 = 1 + alpha;
+    float a0 = 1 + alpha;
     a1 = -2 * cos(w0);
     a2 = 1 - alpha;
+
+    normalize(a0);
   }
 
   void bpf(float f0, float Q) {
@@ -264,9 +296,11 @@ class Biquad {
     b0 = Q * alpha;
     b1 = 0;
     b2 = -Q * alpha;
-    a0 = 1 + alpha;
+    float a0 = 1 + alpha;
     a1 = -2 * cos(w0);
     a2 = 1 - alpha;
+
+    normalize(a0);
   }
 
   void notch(float f0, float Q) {
@@ -275,9 +309,11 @@ class Biquad {
     b0 = 1;
     b1 = -2 * cos(w0);
     b2 = 1;
-    a0 = 1 + alpha;
+    float a0 = 1 + alpha;
     a1 = -2 * cos(w0);
     a2 = 1 - alpha;
+
+    normalize(a0);
   }
 
   void apf(float f0, float Q) {
@@ -286,9 +322,11 @@ class Biquad {
     b0 = 1 - alpha;
     b1 = -2 * cos(w0);
     b2 = 1 + alpha;
-    a0 = 1 + alpha;
+    float a0 = 1 + alpha;
     a1 = -2 * cos(w0);
     a2 = 1 - alpha;
+
+    normalize(a0);
   }
 };
 
