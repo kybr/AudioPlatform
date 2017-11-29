@@ -26,8 +26,10 @@ struct App : Visual, Audio {
   Sine sineLeft, sineRight;
   Noise noise;
 
-  Biquad biquadLeft, biquadRight;
-  Line biquadLeftLine, biquadRightLine;
+  Biquad biquadLeft;
+  BiquadWithLines biquadRight;
+  Line biquadLeftLine;
+  float f0right = 10000.0f;
 
   SamplePlayer samplePlayer = SamplePlayer("/tmp/TingTing.wav");
 
@@ -43,13 +45,13 @@ struct App : Visual, Audio {
   }
 
   void audio(float* out) {
+    biquadRight.lpf(f0right, 1.7f);
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
       float tune = tuneLine();
       float offset = offsetLine();
       left.frequency(mtof(midi + tune));
       right.frequency(mtof(midi + tune + offset));
       biquadLeft.lpf(biquadLeftLine(), 1.7f);
-      biquadRight.lpf(biquadRightLine(), 1.7f);
 
       samplePlayer.frequency(rate());
 
@@ -79,6 +81,7 @@ struct App : Visual, Audio {
           rf += samplePlayer();
           break;
       }
+
       out[i + 1] = biquadRight(rf) * gain * envelope;
     }
 
@@ -113,7 +116,7 @@ struct App : Visual, Audio {
       ImGui::SliderFloat("L Filter", &leftF0, 0.0f, 127.0f);
       ImGui::SliderFloat("R Filter ", &rightF0, 0.0f, 127.0f);
       biquadLeftLine.set(mtof(leftF0));
-      biquadRightLine.set(mtof(rightF0));
+      f0right = mtof(rightF0);
 
       ImGui::PlotLines("Scope left", &b[0], blockSize, 0, nullptr, FLT_MAX,
                        FLT_MAX, ImVec2(0, 0), 2 * sizeof(float));
@@ -131,6 +134,25 @@ struct App : Visual, Audio {
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+      {
+        ImVec4 prevAlpha = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
+        ImGui::GetStyle().Colors[ImGuiCol_WindowBg].w = 0.0f;
+
+        ImGui::Begin(
+            "foo", nullptr,
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+                ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs);
+
+        // ImGui::Text("This!");
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        ImVec2 a(0.0f, 0.0f), b(10.0f, 10.0f);
+        drawList->AddLine(a, b, -1);
+        ImGui::End();
+
+        ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = prevAlpha;
+      }
     }
 
     {

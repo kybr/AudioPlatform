@@ -14,6 +14,10 @@ struct Phasor {
       trigger();
       phase -= 1.0f;
     };
+    if (phase < 0.0f) {
+      trigger();
+      phase += 1.0f;
+    };
     return returnValue;
   }
   float operator()() { return nextValue(); }
@@ -384,6 +388,41 @@ struct ADSR {
         // cout << "e:";
         return 0.0f;
     }
+  }
+};
+
+class BiquadWithLines {
+  // Audio EQ Cookbook
+  // http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
+
+  // x[n-1], x[n-2], y[n-1], y[n-2]
+  float x1, x2, y1, y2;
+
+  // filter coefficients
+  Line b0, b1, b2, a1, a2;
+
+ public:
+  float operator()(float x0) {
+    // Direct Form 1, normalized...
+    float y0 = b0() * x0 + b1() * x1 + b2() * x2 - a1() * y1 - a2() * y2;
+    y2 = y1;
+    y1 = y0;
+    x2 = x1;
+    x1 = x0;
+    return y0;
+  }
+
+  BiquadWithLines() { lpf(10000.0f, 0.7f); }
+
+  void lpf(float f0, float Q) {
+    float w0 = 2 * pi * f0 / sampleRate;
+    float alpha = sin(w0) / (2 * Q);
+    float a0 = 1 + alpha;
+    b0.set(((1 - cos(w0)) / 2) / a0);
+    b1.set((1 - cos(w0)) / a0);
+    b2.set(((1 - cos(w0)) / 2) / a0);
+    a1.set((-2 * cos(w0)) / a0);
+    a2.set((1 - alpha) / a0);
   }
 };
 
