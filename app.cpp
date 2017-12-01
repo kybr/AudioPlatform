@@ -147,8 +147,8 @@ struct App : Visual, Audio {
 
         // ImGui::Text("This!");
         ImDrawList* drawList = ImGui::GetWindowDrawList();
-        ImVec2 a(0.0f, 0.0f), b(10.0f, 10.0f);
-        drawList->AddLine(a, b, -1);
+        ImVec2 a(0.0f, 0.0f), b(100.0f, 100.0f);
+        drawList->AddLine(a, b, 0xFF0000FF);
         ImGui::End();
 
         ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = prevAlpha;
