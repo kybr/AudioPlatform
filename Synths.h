@@ -1,26 +1,66 @@
 #ifndef __240C_SYNTHS__
 #define __240C_SYNTHS__
 
-struct Phasor {
+struct Timer {
   float phase = 0.0f, increment = 0.0f;
-  // frequency/samplerate -> "normalized frequency"
-  void frequency(float f) { increment = f / sampleRate; }
-  virtual void trigger() {}
-  virtual float nextValue() {
-    float returnValue = phase;
+  void period(float t) { increment = 1.0f / (t * sampleRate); }
+  // void period(float t) { increment = (1.0f / t) / sampleRate; }
+
+  virtual bool operator()() {
     phase += increment;
-    // wrapping phase
     if (phase > 1.0f) {
-      trigger();
       phase -= 1.0f;
+      return true;
     };
     if (phase < 0.0f) {
-      trigger();
       phase += 1.0f;
+      return true;
     };
+    return false;
+  }
+};
+
+struct Phasor {
+  Timer timer;
+  void frequency(float f) { timer.period(1.0f / f); }
+
+  virtual void trigger() {}
+  virtual float operator()() { return nextValue(); }
+  virtual float nextValue() {
+    float returnValue = timer.phase;
+    if (timer()) trigger();
     return returnValue;
   }
-  float operator()() { return nextValue(); }
+
+  /*
+    float phase = 0.0f, increment = 0.0f;
+
+    void frequency(float f) { increment = f / sampleRate; }
+    void period(float s) { increment = (1.0f / s) / sampleRate; }
+
+    virtual bool fired() { return phaseHasWrapped(); }
+    virtual bool phaseHasWrapped() {
+      phase += increment;
+      if (phase > 1.0f) {
+        phase -= 1.0f;
+        return true;
+      };
+      if (phase < 0.0f) {
+        phase += 1.0f;
+        return true;
+      };
+      return false;
+    }
+
+    virtual void trigger() {}
+
+    virtual float nextValue() {
+      float returnValue = phase;
+      if (phaseHasWrapped()) trigger();
+      return returnValue;
+    }
+    virtual float operator()() { return nextValue(); }
+    */
 };
 
 struct FloatArray {
@@ -47,7 +87,8 @@ struct FloatArray {
 };
 
 struct FloatArrayWithLinearInterpolation : FloatArray {
-  float operator[](const float index) const {
+  float operator[](const float index) const { return get(index); }
+  float get(const float index) const {
     const unsigned i = floor(index);
     const float x0 = data[i];
     const float x1 = data[(i == (size - 1)) ? 0 : i + 1];  // looping semantics
@@ -59,8 +100,9 @@ struct FloatArrayWithLinearInterpolation : FloatArray {
 struct Table : Phasor, FloatArrayWithLinearInterpolation {
   Table(unsigned size = 4096) { zeros(size); }
 
-  float operator()() {
-    const float v = operator[](phase* size);
+  float operator()() { return nextValue(); }
+  float nextValue() {
+    const float v = get(timer.phase * size);
     Phasor::nextValue();
     return v;
   }
@@ -89,6 +131,7 @@ struct SamplePlayer : Table {
     AudioFile<float> audioFile;
     audioFile.load(filePath);
     playbackRate = audioFile.getSampleRate();
+    assert(audioFile.getNumSamplesPerChannel() > 0);
     zeros(audioFile.getNumSamplesPerChannel());
     for (int i = 0; i < size; ++i) data[i] = audioFile.samples[0][i];
     frequency(1.0f);
@@ -97,21 +140,6 @@ struct SamplePlayer : Table {
   }
 
   void frequency(float f) { Phasor::frequency(f * playbackRate / size); }
-};
-
-struct Timer {
-  float phase = 0.0f, increment = 0.0f;
-  void frequency(float f) { increment = f / sampleRate; }
-  void period(float p) { increment = 1.0f / (p * sampleRate); }
-  void ms(float p) { period(p / 1000.0f); }
-  bool hasFired() {
-    phase += increment;
-    if (phase > 1.0f) {
-      phase -= 1.0f;
-      return true;
-    }
-    return false;
-  }
 };
 
 struct Line {
@@ -222,7 +250,7 @@ struct HardSyncMultiSynth : MultiSynth {
   MultiSynth* other = nullptr;
   void trigger() {
     if (other == nullptr) return;
-    if (sync) other->phase = 0.0f;
+    if (sync) other->timer.phase = 0.0f;
     // if (sync) other->phase = 0.999999f;
   }
 };
@@ -421,6 +449,50 @@ class BiquadWithLines {
     b0.set(((1 - cos(w0)) / 2) / a0);
     b1.set((1 - cos(w0)) / a0);
     b2.set(((1 - cos(w0)) / 2) / a0);
+    a1.set((-2 * cos(w0)) / a0);
+    a2.set((1 - alpha) / a0);
+  }
+
+  void hpf(float f0, float Q) {
+    float w0 = 2 * pi * f0 / sampleRate;
+    float alpha = sin(w0) / (2 * Q);
+    float a0 = 1 + alpha;
+    b0.set(((1 + cos(w0)) / 2) / a0);
+    b1.set((-(1 + cos(w0))) / a0);
+    b2.set(((1 + cos(w0)) / 2) / a0);
+    a1.set((-2 * cos(w0)) / a0);
+    a2.set((1 - alpha) / a0);
+  }
+
+  void bpf(float f0, float Q) {
+    float w0 = 2 * pi * f0 / sampleRate;
+    float alpha = sin(w0) / (2 * Q);
+    float a0 = 1 + alpha;
+    b0.set((Q * alpha) / a0);
+    b1.set((0) / a0);
+    b2.set((-Q * alpha) / a0);
+    a1.set((-2 * cos(w0)) / a0);
+    a2.set((1 - alpha) / a0);
+  }
+
+  void notch(float f0, float Q) {
+    float w0 = 2 * pi * f0 / sampleRate;
+    float alpha = sin(w0) / (2 * Q);
+    float a0 = 1 + alpha;
+    b0.set((1) / a0);
+    b1.set((-2 * cos(w0)) / a0);
+    b2.set((1) / a0);
+    a1.set((-2 * cos(w0)) / a0);
+    a2.set((1 - alpha) / a0);
+  }
+
+  void apf(float f0, float Q) {
+    float w0 = 2 * pi * f0 / sampleRate;
+    float alpha = sin(w0) / (2 * Q);
+    float a0 = 1 + alpha;
+    b0.set((1 - alpha) / a0);
+    b1.set((-2 * cos(w0)) / a0);
+    b2.set((1 + alpha) / a0);
     a1.set((-2 * cos(w0)) / a0);
     a2.set((1 - alpha) / a0);
   }

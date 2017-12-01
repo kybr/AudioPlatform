@@ -25,6 +25,7 @@ struct App : Visual, Audio {
   ADSR adsr;
   Sine sineLeft, sineRight;
   Noise noise;
+  Timer timer;
 
   Biquad biquadLeft;
   BiquadWithLines biquadRight;
@@ -56,12 +57,14 @@ struct App : Visual, Audio {
       samplePlayer.frequency(rate());
 
       //
-      sineLeft.increment = left.increment;
-      sineRight.increment = right.increment;
+      sineLeft.timer.increment = left.timer.increment;
+      sineRight.timer.increment = right.timer.increment;
 
       //
       float n = noise();
       float gain = gainLine();
+
+      if (timer()) adsr.reset();
 
       float envelope = applyADSR ? dbtoa(90.0 * (adsr() - 1.0f)) : 1.0f;
 
@@ -131,6 +134,10 @@ struct App : Visual, Audio {
       static float bar = 1.0f;
       ImGui::SliderFloat("Sampler Player rate", &bar, -2.0f, 2.0f);
       rate.set(bar);
+
+      static float timerPeriod = 1.0f;
+      ImGui::SliderFloat("Timer period (s)", &timerPeriod, 0.1f, 2.0f);
+      timer.period(timerPeriod);
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
