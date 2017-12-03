@@ -8,11 +8,11 @@
 #include "Headers.h"
 
 //
-struct App : Visual, Audio {
+struct App : Visual, Audio, MIDI {
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
   bool show_test_window = true;
   bool show_another_window = false;
-  int midi = 60;
+  int midi_note = 60;
   float* b = new float[blockSize];
   HardSyncMultiSynth left, right;
   bool applyADSR = false;
@@ -32,13 +32,14 @@ struct App : Visual, Audio {
   Line biquadLeftLine;
   float f0right = 10000.0f;
 
-  SamplePlayer samplePlayer = SamplePlayer("/tmp/TingTing.wav");
+  SamplePlayer samplePlayer =
+      SamplePlayer("/Users/ky/Documents/Audio/TingTing.wav");
 
   App() {
     adsr.loop = false;
     left.other = &right;
-    left.frequency(mtof(midi + tuneLine.value));
-    right.frequency(mtof(midi + tuneLine.value));
+    left.frequency(mtof(midi_note + tuneLine.value));
+    right.frequency(mtof(midi_note + tuneLine.value));
 
     sineLeft.frequency(440.0f);
     sineRight.frequency(440.0f);
@@ -50,8 +51,8 @@ struct App : Visual, Audio {
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
       float tune = tuneLine();
       float offset = offsetLine();
-      left.frequency(mtof(midi + tune));
-      right.frequency(mtof(midi + tune + offset));
+      left.frequency(mtof(midi_note + tune));
+      right.frequency(mtof(midi_note + tune + offset));
       biquadLeft.lpf(biquadLeftLine(), 1.7f);
 
       samplePlayer.frequency(rate());
@@ -94,11 +95,16 @@ struct App : Visual, Audio {
     memcpy(b, out, blockSize * channelCount * sizeof(float));
   }
 
+  std::vector<unsigned char> message;
   void visual() {
+    midi(message);
+    for (int i = 0; i < message.size(); ++i)
+      std::cout << "midi byte: " << (int)message[i] << std::endl;
+
     {
-      int was = midi;
-      ImGui::SliderInt("Keyboard", &midi, 48, 72);
-      if (midi != was) adsr.reset();
+      int was = midi_note;
+      ImGui::SliderInt("Keyboard", &midi_note, 48, 72);
+      if (midi_note != was) adsr.reset();
 
       static float tune = 0.0f;
       ImGui::SliderFloat("Tune", &tune, -12.0f, 12.0f);
