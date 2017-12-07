@@ -22,7 +22,7 @@ struct MIDI {
         portName = midiin->getPortName(i);
       } catch (RtMidiError &error) {
         error.printMessage();
-        exit(1);
+        // exit(1);
       }
       std::cout << "  Input Port #" << i + 1 << ": " << portName << '\n';
     }
@@ -33,7 +33,7 @@ struct MIDI {
       midiin->openPort(port);
     } catch (RtMidiError &error) {
       error.printMessage();
-      exit(1);
+      // exit(1);
     }
 
     // Don't ignore sysex, timing, or active sensing messages.

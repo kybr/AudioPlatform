@@ -27,6 +27,8 @@ struct App : Visual, Audio, MIDI {
   Noise noise;
   Timer timer;
 
+  QuasiBandlimited saw, pulse;
+
   Biquad biquadLeft;
   BiquadWithLines biquadRight;
   Line biquadLeftLine;
@@ -51,6 +53,8 @@ struct App : Visual, Audio, MIDI {
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
       float tune = tuneLine();
       float offset = offsetLine();
+      saw.frequency(mtof(midi_note + tune));
+      pulse.frequency(mtof(midi_note + tune + offset));
       left.frequency(mtof(midi_note + tune));
       right.frequency(mtof(midi_note + tune + offset));
       biquadLeft.lpf(biquadLeftLine(), 1.7f);
@@ -69,14 +73,16 @@ struct App : Visual, Audio, MIDI {
 
       float envelope = applyADSR ? dbtoa(90.0 * (adsr() - 1.0f)) : 1.0f;
 
-      float lf = left();
+      float lf = saw.saw();
+      // float lf = left();
       out[i + 0] = biquadLeft(lf) * gain * envelope;
 
       float rf = 0;
       switch (chooseRight) {
         default:
         case 0:
-          rf += right();
+          rf += pulse.pulse();
+          // rf += right();
           break;
         case 1:
           rf += sineRight();
@@ -144,6 +150,17 @@ struct App : Visual, Audio, MIDI {
       static float timerPeriod = 1.0f;
       ImGui::SliderFloat("Timer period (s)", &timerPeriod, 0.1f, 2.0f);
       timer.period(timerPeriod);
+
+      static float R = 1.2f;
+      static float vfl = 1.0f;
+      ImGui::SliderFloat("v Filter (left)", &vfl, -R, R);
+      saw.filter(vfl);
+      static float vfr = 1.0f;
+      ImGui::SliderFloat("v Filter (right)", &vfr, -R, R);
+      pulse.filter(vfr);
+      static float pw = 0.5f;
+      ImGui::SliderFloat("pulse width", &pw, -0.1f, 1.1f);
+      pulse.pulseWidth(pw);
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                   1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
