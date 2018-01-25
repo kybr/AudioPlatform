@@ -1,17 +1,19 @@
-Karl Yerkes
-karl.yerkes@gmail.com
-2017-11-03
-MAT 240C
+# AudioPlatform
 
-# App
+is a mini-framework for teaching digital audio programming
 
-App is a mini-framework using ImGui and rtaudio.
 
-You only need to edit `app.cpp`. Leave all the other source code files as they are.
+## Dependenceies
+- GLFW
+- ImGui
+- rtaudio.
+- rtmidi
+
 
 ## Windows
 
 Execute the `build.bat` script from a Visual Studio Developer's Terminal. If this does not work, try rebuilding rtaudio and/or ImGui; then try again. The build process creates a file `Debug\app.exe` which you may execute by typing that on the Terminal.
+
 
 ## macOS
 
