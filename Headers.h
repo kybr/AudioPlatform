@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include "Audio.h"
 #include "AudioFile.h"
 #include "MIDI.h"

@@ -96,17 +96,17 @@ struct Sine : Table {
 
 struct SamplePlayer : Table {
   float playbackRate;
-  SamplePlayer(const char* filePath) {
+  SamplePlayer(std::string filePath) {
     // https://github.com/adamstark/AudioFile
     AudioFile<float> audioFile;
-    audioFile.load(filePath);
+    assert(audioFile.load(filePath));
     playbackRate = audioFile.getSampleRate();
     assert(audioFile.getNumSamplesPerChannel() > 0);
     zeros(audioFile.getNumSamplesPerChannel());
     for (int i = 0; i < size; ++i) data[i] = audioFile.samples[0][i];
     frequency(1.0f);
 
-    printf("%s -> %d samples @ %f Hz\n", filePath, size, playbackRate);
+    printf("%s -> %d samples @ %f Hz\n", filePath.c_str(), size, playbackRate);
   }
 
   void frequency(float f) { Phasor::frequency(f * playbackRate / size); }
