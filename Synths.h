@@ -31,36 +31,6 @@ struct Phasor {
     if (timer()) trigger();
     return returnValue;
   }
-
-  /*
-    float phase = 0.0f, increment = 0.0f;
-
-    void frequency(float f) { increment = f / sampleRate; }
-    void period(float s) { increment = (1.0f / s) / sampleRate; }
-
-    virtual bool fired() { return phaseHasWrapped(); }
-    virtual bool phaseHasWrapped() {
-      phase += increment;
-      if (phase > 1.0f) {
-        phase -= 1.0f;
-        return true;
-      };
-      if (phase < 0.0f) {
-        phase += 1.0f;
-        return true;
-      };
-      return false;
-    }
-
-    virtual void trigger() {}
-
-    virtual float nextValue() {
-      float returnValue = phase;
-      if (phaseHasWrapped()) trigger();
-      return returnValue;
-    }
-    virtual float operator()() { return nextValue(); }
-    */
 };
 
 struct FloatArray {

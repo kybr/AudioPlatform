@@ -34,8 +34,7 @@ struct App : Visual, Audio, MIDI {
   Line biquadLeftLine;
   float f0right = 10000.0f;
 
-  SamplePlayer samplePlayer =
-      SamplePlayer("/Users/ky/Documents/Audio/TingTing.wav");
+  SamplePlayer samplePlayer = SamplePlayer("TingTing.wav");
 
   App() {
     adsr.loop = false;
@@ -66,7 +65,7 @@ struct App : Visual, Audio, MIDI {
       sineRight.timer.increment = right.timer.increment;
 
       //
-      float n = noise();
+      // float n = noise();
       float gain = gainLine();
 
       if (timer()) adsr.reset();
