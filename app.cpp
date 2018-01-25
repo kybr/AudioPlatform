@@ -4,18 +4,50 @@ struct App : Visual, Audio, MIDI {
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
   bool show_test_window = true;
   bool show_another_window = false;
-  float* waveformData = new float[blockSize];
+  // this is an array / pointer to memory
+  float* waveformData = new float[blockSize * channelCount];
 
   Sine sine;
   Line gain;
+  Line envelope;
+  Timer t;
 
-  App() { sine.frequency(440.0f); }
+  Table oscillator;
+  Biquad filter;
+
+  float pulseRate = 200;
+
+  App() {
+    sine.frequency(440.0f);
+
+    // Table setup
+    // size == 4096
+    for (int i = 0; i < oscillator.size; i++)
+      oscillator.data[i] = sin(pi * i / oscillator.size);
+    oscillator.frequency(220);
+
+    // Biquad setup
+    filter.bpf(700, 2.5);
+  }
 
   void audio(float* out) {
+    // for each pair of samples, left and right
+    //
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
+      if (t()) {
+        envelope.set(1, 0, pulseRate);
+      }
+      float e = envelope();
       float g = gain();
-      out[i + 1] = out[i + 0] = sine() * g;
+      // float s = filter(oscillator());  // sine();
+      // float s = oscillator() + filter(oscillator());  // sine();
+      float o = oscillator();
+      float s = o + filter(o);  // sine();
+      out[i + 1] = s * g * e;
+      out[i + 0] = s * g * e;
     }
+
+    // copy
     memcpy(waveformData, out, blockSize * channelCount * sizeof(float));
   }
 
@@ -31,6 +63,14 @@ struct App : Visual, Audio, MIDI {
       static float db = -90.0f;
       ImGui::SliderFloat("dbtoa", &db, -90.0f, 9.0f);
       gain.set(dbtoa(db), 50.0f);
+
+      static float note = 45;
+      ImGui::SliderFloat("note", &note, 0, 127);
+      oscillator.frequency(mtof(note));
+
+      float was = pulseRate;
+      ImGui::SliderFloat("pulse rate", &pulseRate, 0, 1000);
+      if (was != pulseRate) t.period(pulseRate / 1000);
 
       // draw waveforms
       ImGui::PlotLines("Scope left", &waveformData[0], blockSize, 0, nullptr,

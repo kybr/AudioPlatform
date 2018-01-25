@@ -1,8 +1,18 @@
 #ifndef __240C_SYNTHS__
 #define __240C_SYNTHS__
 
+// Timer t;
+// t.period(1);
+// // ...
+// for each sample
+// ...
+//   if (t()) {
+//     // reset an oscillator
+//   }
+//
 struct Timer {
   float phase = 0.0f, increment = 0.0f;
+  // Karl, what are the units?
   void period(float t) { increment = 1.0f / (t * sampleRate); }
   // void period(float t) { increment = (1.0f / t) / sampleRate; }
 
@@ -12,6 +22,7 @@ struct Timer {
       phase -= 1.0f;
       return true;
     };
+    // if you happen to be running a timer backwards!? necessary?
     if (phase < 0.0f) {
       phase += 1.0f;
       return true;
@@ -20,6 +31,10 @@ struct Timer {
   }
 };
 
+// Phasor p;
+// p.frequency(220)
+// ...
+// float s = p(); // (0, 1)
 struct Phasor {
   Timer timer;
   void frequency(float f) { timer.period(1.0f / f); }
