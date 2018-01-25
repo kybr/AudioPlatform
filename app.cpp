@@ -1,20 +1,28 @@
 #include "Headers.h"
 
+float f[2][16] = {
+    {235, 390, 370, 610, 585, 850, 820, 750, 700, 600, 500, 460, 360, 300, 250},
+    {240, 2100, 2300, 1900, 1900, 1710, 1610, 1530, 940, 760, 1170, 700, 1310,
+     640, 1390, 595}};
+
 struct App : Visual, Audio, MIDI {
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
   bool show_test_window = true;
   bool show_another_window = false;
   float* waveformData = new float[blockSize];
 
-  Sine sine;
-  Line gain;
+  MultiSynth synth;
+  Line gain, note;
+  Biquad f1, f2;
 
-  App() { sine.frequency(440.0f); }
+  App() { synth.frequency(220.0f); }
 
   void audio(float* out) {
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
+      synth.frequency(note());
+      float v = synth();
       float g = gain();
-      out[i + 1] = out[i + 0] = sine() * g;
+      out[i + 1] = out[i + 0] = (v + f1(v) + f2(v)) * g;
     }
     memcpy(waveformData, out, blockSize * channelCount * sizeof(float));
   }
@@ -31,6 +39,17 @@ struct App : Visual, Audio, MIDI {
       static float db = -90.0f;
       ImGui::SliderFloat("dbtoa", &db, -90.0f, 9.0f);
       gain.set(dbtoa(db), 50.0f);
+
+      static float n = 0;
+      ImGui::SliderFloat("note", &n, 0, 127);
+      note.set(mtof(n));
+
+      static int i = 0;
+      ImGui::SliderInt("vowel", &i, 0, 15);
+      f1.bpf(f[0][i], 3.1f);
+      f2.bpf(f[1][i], 3.1f);
+
+      ImGui::SliderInt("oscillator", &synth.type, 0, 3);
 
       // draw waveforms
       ImGui::PlotLines("Scope left", &waveformData[0], blockSize, 0, nullptr,
