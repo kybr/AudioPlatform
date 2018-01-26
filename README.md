@@ -9,6 +9,9 @@ is a mini-framework for teaching digital audio programming
 - rtaudio.
 - rtmidi
 
+## Linux
+
+On apt-based systems, you'll need `libglfw3-dev` and `libasound2-dev`. The `build-essential` package will install everything you need to compile and link. 
 
 ## Windows
 
