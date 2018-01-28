@@ -30,7 +30,6 @@ ifeq ($(UNAME_S), Linux) #LINUX
 
 	CXX += -D__LINUX_ALSA__
 
-	LIB=
 	LIB += -lpthread
 	LIB += -lglfw
 	LIB += -ldl
@@ -71,7 +70,7 @@ TARGET = app
 	cc $(INC) -c -o $@ $<
 
 app: app.o AudioFile/AudioFile.o rtaudio/RtAudio.o rtmidi/RtMidi.o imgui/examples/libs/gl3w/GL/gl3w.o imgui/examples/opengl3_example/imgui_impl_glfw_gl3.o imgui/imgui.o imgui/imgui_demo.o imgui/imgui_draw.o
-	$(CXX) $(LIB) -o $@ $^
+	$(CXX) -o $@ $^ $(LIB) 
 
 clean:
 	rm imgui/examples/libs/gl3w/GL/gl3w.o
