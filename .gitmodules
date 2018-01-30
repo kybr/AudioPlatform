@@ -10,3 +10,6 @@
 [submodule "rtmidi"]
 	path = rtmidi
 	url = https://github.com/thestk/rtmidi.git
+[submodule "AudioFFT"]
+	path = AudioFFT
+	url = https://github.com/HiFi-LoFi/AudioFFT
