@@ -282,7 +282,7 @@ class Biquad {
   }
 
   void lpf(float f0, float Q) {
-    float w0 = 2 * pi * f0 / sampleRate;
+    float w0 = 2 * M_PI * f0 / sampleRate;
     float alpha = sin(w0) / (2 * Q);
     b0 = (1 - cos(w0)) / 2;
     b1 = 1 - cos(w0);
@@ -295,7 +295,7 @@ class Biquad {
   }
 
   void hpf(float f0, float Q) {
-    float w0 = 2 * pi * f0 / sampleRate;
+    float w0 = 2 * M_PI * f0 / sampleRate;
     float alpha = sin(w0) / (2 * Q);
     b0 = (1 + cos(w0)) / 2;
     b1 = -(1 + cos(w0));
@@ -308,7 +308,7 @@ class Biquad {
   }
 
   void bpf(float f0, float Q) {
-    float w0 = 2 * pi * f0 / sampleRate;
+    float w0 = 2 * M_PI * f0 / sampleRate;
     float alpha = sin(w0) / (2 * Q);
     b0 = Q * alpha;
     b1 = 0;
@@ -321,7 +321,7 @@ class Biquad {
   }
 
   void notch(float f0, float Q) {
-    float w0 = 2 * pi * f0 / sampleRate;
+    float w0 = 2 * M_PI * f0 / sampleRate;
     float alpha = sin(w0) / (2 * Q);
     b0 = 1;
     b1 = -2 * cos(w0);
@@ -334,7 +334,7 @@ class Biquad {
   }
 
   void apf(float f0, float Q) {
-    float w0 = 2 * pi * f0 / sampleRate;
+    float w0 = 2 * M_PI * f0 / sampleRate;
     float alpha = sin(w0) / (2 * Q);
     b0 = 1 - alpha;
     b1 = -2 * cos(w0);
@@ -428,7 +428,7 @@ class BiquadWithLines {
   BiquadWithLines() { lpf(10000.0f, 0.7f); }
 
   void lpf(float f0, float Q) {
-    float w0 = 2 * pi * f0 / sampleRate;
+    float w0 = 2 * M_PI * f0 / sampleRate;
     float alpha = sin(w0) / (2 * Q);
     float a0 = 1 + alpha;
     b0.set(((1 - cos(w0)) / 2) / a0);
@@ -439,7 +439,7 @@ class BiquadWithLines {
   }
 
   void hpf(float f0, float Q) {
-    float w0 = 2 * pi * f0 / sampleRate;
+    float w0 = 2 * M_PI * f0 / sampleRate;
     float alpha = sin(w0) / (2 * Q);
     float a0 = 1 + alpha;
     b0.set(((1 + cos(w0)) / 2) / a0);
@@ -450,7 +450,7 @@ class BiquadWithLines {
   }
 
   void bpf(float f0, float Q) {
-    float w0 = 2 * pi * f0 / sampleRate;
+    float w0 = 2 * M_PI * f0 / sampleRate;
     float alpha = sin(w0) / (2 * Q);
     float a0 = 1 + alpha;
     b0.set((Q * alpha) / a0);
@@ -461,7 +461,7 @@ class BiquadWithLines {
   }
 
   void notch(float f0, float Q) {
-    float w0 = 2 * pi * f0 / sampleRate;
+    float w0 = 2 * M_PI * f0 / sampleRate;
     float alpha = sin(w0) / (2 * Q);
     float a0 = 1 + alpha;
     b0.set((1) / a0);
@@ -472,7 +472,7 @@ class BiquadWithLines {
   }
 
   void apf(float f0, float Q) {
-    float w0 = 2 * pi * f0 / sampleRate;
+    float w0 = 2 * M_PI * f0 / sampleRate;
     float alpha = sin(w0) / (2 * Q);
     float a0 = 1 + alpha;
     b0.set((1 - alpha) / a0);
@@ -555,7 +555,7 @@ struct QuasiBandlimited {
     step();
 
     // calculate next sample
-    osc = (osc + sinf(2 * pi * (phase + osc * scaling))) * 0.5;
+    osc = (osc + sinf(2 * M_PI * (phase + osc * scaling))) * 0.5;
     // compensate HF rolloff
     float out = a0 * osc + a1 * last;
     last = osc;
@@ -568,9 +568,10 @@ struct QuasiBandlimited {
     step();
 
     // calculate saw1
-    osc = (osc + sinf(2 * pi * (phase + osc * scaling))) * 0.5;
+    osc = (osc + sinf(2 * M_PI * (phase + osc * scaling))) * 0.5;
     // calculate saw2
-    osc2 = (osc2 + sinf(2 * pi * (phase + osc2 * scaling + PulseWidth))) * 0.5;
+    osc2 =
+        (osc2 + sinf(2 * M_PI * (phase + osc2 * scaling + PulseWidth))) * 0.5;
     float out = osc - osc2;  // subtract two saw waves
     // compensate HF rolloff
     out = a0 * out + a1 * last;

@@ -23,7 +23,7 @@ struct App : Visual, Audio, MIDI {
     // Table setup
     // size == 4096
     for (int i = 0; i < oscillator.size; i++)
-      oscillator.data[i] = sin(pi * i / oscillator.size);
+      oscillator.data[i] = sin(M_PI * i / oscillator.size);
     oscillator.frequency(220);
 
     // Biquad setup
