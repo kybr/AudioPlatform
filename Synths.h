@@ -82,6 +82,14 @@ struct FloatArrayWithLinearInterpolation : FloatArray {
     const float t = index - i;
     return x1 * t + x0 * (1 - t);
   }
+
+  void set(const float index, const float value) {
+    const unsigned i = floor(index);
+    const unsigned j = (i == (size - 1)) ? 0 : i + 1;  // looping semantics
+    const float t = index - i;
+    data[i] += value * (1 - t);
+    data[j] += value * t;
+  }
 };
 
 struct Table : Phasor, FloatArrayWithLinearInterpolation {

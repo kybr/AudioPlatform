@@ -88,6 +88,26 @@ struct App : Visual, Audio {
       ImGui::PlotLines("Spectrum", &fft.magnitude[0], fft.magnitude.size(), 0,
                        "", FLT_MAX, FLT_MAX, ImVec2(0, 50));
 
+      /*
+      // incomplete implementation of log-frequency plot
+      FloatArrayWithLinearInterpolation arr;
+      arr.zeros(2048);
+      printf("size: %d\n", arr.size);
+
+      const unsigned N = fft.magnitude.size();
+      for (unsigned i = 1; i < N; ++i) {
+        float f = sampleRate / 2.0f * i / (N - 1);
+        unsigned highestMidiNote = ftom(sampleRate / 2.0f);
+        float index = arr.size * ftom(f) / highestMidiNote;
+        if (index < arr.size) arr.set(index, fft.magnitude[i]);
+      }
+      //      fflush(stdout);
+      //      exit(1);
+
+      ImGui::PlotLines("foo", arr.data, arr.size, 0, "", FLT_MAX, FLT_MAX,
+                       ImVec2(0, 50));
+      */
+
       // release the lock; this is important. if you don't release the lock,
       // then the audio thread can never get the lock, so it can never copy any
       // history and we'll stop getting updates
