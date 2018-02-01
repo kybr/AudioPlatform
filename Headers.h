@@ -4,6 +4,7 @@
 #include <string>
 #include "Audio.h"
 #include "AudioFile.h"
+#include "FFT.h"
 #include "MIDI.h"
 #include "Visual.h"
 //

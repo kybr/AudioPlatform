@@ -1,6 +1,8 @@
 #ifndef __240C_SYNTHS__
 #define __240C_SYNTHS__
 
+namespace ap {
+
 // Timer t;
 // t.period(1);
 // // ...
@@ -579,5 +581,7 @@ struct QuasiBandlimited {
     return out * norm;  // store normalized result
   }
 };
+
+}  // namespace ap
 
 #endif

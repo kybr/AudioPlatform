@@ -3,6 +3,8 @@
 
 #include "RtMidi.h"
 
+namespace ap {
+
 struct MIDI {
   RtMidiIn *midiin = nullptr;
 
@@ -49,5 +51,7 @@ struct MIDI {
     if (nBytes > 0) std::cout << "stamp = " << stamp << std::endl;
   }
 };
+
+}  // namespace ap
 
 #endif

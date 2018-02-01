@@ -17,6 +17,7 @@ INC=
 INC += -Irtaudio/
 INC += -Irtmidi/
 INC += -IAudioFile/
+INC += -IAudioFFT/
 INC += -Iimgui/
 INC += -Iimgui/examples/libs/gl3w/
 INC += -Iimgui/examples/opengl3_example/
@@ -69,7 +70,7 @@ TARGET = app
 %.o: %.c
 	cc $(INC) -c -o $@ $<
 
-app: app.o AudioFile/AudioFile.o rtaudio/RtAudio.o rtmidi/RtMidi.o imgui/examples/libs/gl3w/GL/gl3w.o imgui/examples/opengl3_example/imgui_impl_glfw_gl3.o imgui/imgui.o imgui/imgui_demo.o imgui/imgui_draw.o
+app: app.o AudioFile/AudioFile.o rtaudio/RtAudio.o rtmidi/RtMidi.o imgui/examples/libs/gl3w/GL/gl3w.o imgui/examples/opengl3_example/imgui_impl_glfw_gl3.o imgui/imgui.o imgui/imgui_demo.o imgui/imgui_draw.o AudioFFT/AudioFFT.o
 	$(CXX) -o $@ $^ $(LIB) 
 
 clean:
@@ -82,3 +83,4 @@ clean:
 	rm app.o
 	rm AudioFile/AudioFile.o
 	rm rtaudio/RtAudio.o
+	rm AudioFFT/AudioFFT.o

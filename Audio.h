@@ -3,6 +3,8 @@
 
 #include "RtAudio.h"
 
+namespace ap {
+
 const unsigned channelCount = 2;
 const float sampleRate = 44100.0f;
 const unsigned blockSize = 512;
@@ -68,5 +70,7 @@ int cb(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
   if (status) std::cout << "Stream underflow detected!" << std::endl;
   return 0;
 }
+
+}  // namespace ap
 
 #endif
