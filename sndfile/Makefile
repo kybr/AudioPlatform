@@ -5,10 +5,12 @@ CXX += -std=c++11
 CXX += -Wall
 CXX += -g
 INC += -I /usr/local/include
+INC += -I ../
+INC += -I ../AudioFFT/
 LIB += -L /usr/local/lib
 LIB += -l sndfile
 
-_: read-wav write-wav sine sawtooth sine-sweep additive-synth
+_: read-wav write-wav sine sawtooth sine-sweep fft-synth
 
 %.o: %.cpp
 	$(CXX) $(INC) -c -o $@ $<
@@ -31,5 +33,8 @@ sine-sweep: sine-sweep.o
 additive-synth: additive-synth.o
 	$(CXX)  -o $@ $^ $(LIB)
 
+fft-synth: fft-synth.o ../AudioFFT/AudioFFT.o
+	$(CXX)  -o $@ $^ $(LIB)
+
 clean:
-	rm additive-synth read-wav write-wav sine sawtooth sine-sweep *.o
+	rm additive-synth read-wav write-wav sine sawtooth sine-sweep fft-synth *.o
