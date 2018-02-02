@@ -59,70 +59,78 @@ struct App : Visual, Audio {
   }
 
   void visual() {
-    {
-      // make a slider for "volume" level
-      static float db = -60.0f;
-      ImGui::SliderFloat("Level (dB)", &db, -60.0f, 3.0f);
-      gain.set(dbtoa(db), 50.0f);
+    // this stuff makes a single "root" window
+    int windowWidth, windowHeight;
+    glfwGetWindowSize(window, &windowWidth, &windowHeight);
+    ImGui::SetWindowPos("window", ImVec2(0, 0));
+    ImGui::SetWindowSize("window", ImVec2(windowWidth, windowWidth));
+    ImGui::Begin("window", nullptr,
+                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_NoResize);
 
-      // make a slider for note value (frequency)
-      static float note = 60;
-      ImGui::SliderFloat("Frequency (MIDI)", &note, 0, 127);
-      frequency.set(mtof(note), 50.0f);
+    // make a slider for "volume" level
+    static float db = -60.0f;
+    ImGui::SliderFloat("Level (dB)", &db, -60.0f, 3.0f);
+    gain.set(dbtoa(db), 50.0f);
 
-      // get the lock (mutex); this will block, waiting for the audio thread to
-      // release the lock. lock() waits while try_lock() does not.
-      m.lock();
+    // make a slider for note value (frequency)
+    static float note = 60;
+    ImGui::SliderFloat("Frequency (MIDI)", &note, 0, 127);
+    frequency.set(mtof(note), 50.0f);
 
-      // use the history buffer to draw the waveform
-      ImGui::PlotLines("Waveform", &history[0], historySize, 0, "", FLT_MAX,
-                       FLT_MAX, ImVec2(0, 50));
+    // get the lock (mutex); this will block, waiting for the audio thread to
+    // release the lock. lock() waits while try_lock() does not.
+    m.lock();
 
-      // take the FFT
-      fft.forward(&history[0]);
+    // use the history buffer to draw the waveform
+    ImGui::PlotLines("Waveform", &history[0], historySize, 0, "", FLT_MAX,
+                     FLT_MAX, ImVec2(0, 50));
 
-      // convert to dB scale on the y axis
-      for (auto& f : fft.magnitude) f = atodb(f);
+    // take the FFT
+    fft.forward(&history[0]);
 
-      // draw the spectrum
-      ImGui::PlotLines("Spectrum", &fft.magnitude[0], fft.magnitude.size(), 0,
-                       "", FLT_MAX, FLT_MAX, ImVec2(0, 50));
+    // release the lock; this is important. if you don't release the lock,
+    // then the audio thread can never get the lock, so it can never copy any
+    // history and we'll stop getting updates. we can release the lock as soon
+    // as we are done using the history vector
+    m.unlock();
 
-      /*
-      // incomplete implementation of log-frequency plot
-      FloatArrayWithLinearInterpolation arr;
-      arr.zeros(2048);
-      printf("size: %d\n", arr.size);
+    // convert to dB scale on the y axis
+    for (auto& f : fft.magnitude) f = atodb(f);
 
-      const unsigned N = fft.magnitude.size();
-      for (unsigned i = 1; i < N; ++i) {
-        float f = sampleRate / 2.0f * i / (N - 1);
-        unsigned highestMidiNote = ftom(sampleRate / 2.0f);
-        float index = arr.size * ftom(f) / highestMidiNote;
-        if (index < arr.size) arr.set(index, fft.magnitude[i]);
-      }
-      //      fflush(stdout);
-      //      exit(1);
+    // draw the spectrum, linear in frequency
+    ImGui::PlotLines("Spectrum", &fft.magnitude[0], fft.magnitude.size(), 0, "",
+                     FLT_MAX, FLT_MAX, ImVec2(0, 50));
 
-      ImGui::PlotLines("foo", arr.data, arr.size, 0, "", FLT_MAX, FLT_MAX,
-                       ImVec2(0, 50));
-      */
+    // draw the spectrum, LOG in frequency
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-      // release the lock; this is important. if you don't release the lock,
-      // then the audio thread can never get the lock, so it can never copy any
-      // history and we'll stop getting updates
-      m.unlock();
+    // these are C++ "lambda" functions
+    auto fix = [](float& f, float scale, float offset) {
+      f = offset + f * scale;
+    };
+    auto flip = [](float& f, float level) { f = level - f; };
+
+    auto line = [&](float x0, float y0, float x1, float y1) {
+      // these numbers are magic and brittle :( but for now they work
+      fix(x0, 7, 10);
+      fix(x1, 7, 10);
+      flip(y0, 100);
+      flip(y1, 100);
+      fix(y0, 4, 50);
+      fix(y1, 4, 50);
+      drawList->AddLine(ImVec2(x0, y0), ImVec2(x1, y1), ImColor(255, 255, 255));
+    };
+
+    // draw the spectrum with lines
+    float _n = ftom(sampleRate * 1 / fft.magnitude.size() / 2);
+    for (unsigned i = 2; i < fft.magnitude.size(); ++i) {
+      float n = ftom(sampleRate * i / fft.magnitude.size() / 2);
+      line(_n, fft.magnitude[i - 1], n, fft.magnitude[i]);
+      _n = n;
     }
 
-    // You can ignore the stuff below this line ------------------------
-    //
-    int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
-    glClearColor(0.11, 0.11, 0.11, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // If you want to draw stuff using OpenGL, you would do that right here.
+    ImGui::End();
   }
 };
 
