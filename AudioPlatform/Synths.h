@@ -1,6 +1,8 @@
 #ifndef __240C_SYNTHS__
 #define __240C_SYNTHS__
 
+#include "AudioFile/AudioFile.h"
+
 namespace ap {
 
 // Timer t;

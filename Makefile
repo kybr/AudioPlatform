@@ -14,13 +14,14 @@ CXX += -Wformat
 CXX += -g
 
 INC=
-INC += -Irtaudio/
-INC += -Irtmidi/
-INC += -IAudioFile/
-INC += -IAudioFFT/
-INC += -Iimgui/
-INC += -Iimgui/examples/libs/gl3w/
-INC += -Iimgui/examples/opengl3_example/
+# AudioPlatform
+INC += -I ./
+# rtaudio, rtmidi, AudioFFT, AudioFile
+INC += -I external/ 
+# imgui
+INC += -I external/imgui/
+INC += -I external/imgui/examples/libs/gl3w/
+INC += -I external/imgui/examples/opengl3_example/
 
 LIB=
 
@@ -62,7 +63,16 @@ endif
 ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
 endif
 
-TARGET = app
+OBJ=
+OBJ += external/AudioFile/AudioFile.o
+OBJ += external/rtaudio/RtAudio.o
+OBJ += external/rtmidi/RtMidi.o
+OBJ += external/imgui/examples/libs/gl3w/GL/gl3w.o
+OBJ += external/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.o
+OBJ += external/imgui/imgui.o
+OBJ += external/imgui/imgui_demo.o
+OBJ += external/imgui/imgui_draw.o
+OBJ += external/AudioFFT/AudioFFT.o
 
 %.o: %.cpp
 	$(CXX) $(INC) -c -o $@ $<
@@ -70,17 +80,17 @@ TARGET = app
 %.o: %.c
 	cc $(INC) -c -o $@ $<
 
-app: app.o AudioFile/AudioFile.o rtaudio/RtAudio.o rtmidi/RtMidi.o imgui/examples/libs/gl3w/GL/gl3w.o imgui/examples/opengl3_example/imgui_impl_glfw_gl3.o imgui/imgui.o imgui/imgui_demo.o imgui/imgui_draw.o AudioFFT/AudioFFT.o
+_: example/fm-synth example/formant-synth
+
+example/formant-synth: example/formant-synth.o $(OBJ)
+	$(CXX) -o $@ $^ $(LIB) 
+
+example/fm-synth: example/fm-synth.o $(OBJ)
 	$(CXX) -o $@ $^ $(LIB) 
 
 clean:
-	rm imgui/examples/libs/gl3w/GL/gl3w.o
-	rm imgui/examples/opengl3_example/imgui_impl_glfw_gl3.o
-	rm imgui/imgui_draw.o
-	rm imgui/imgui_demo.o
-	rm imgui/imgui.o
-	rm rtmidi/RtMidi.o
-	rm app.o
-	rm AudioFile/AudioFile.o
-	rm rtaudio/RtAudio.o
-	rm AudioFFT/AudioFFT.o
+	rm -f $(OBJ)
+	rm -f example/formant-synth
+	rm -f example/formant-synth.o
+	rm -f example/fm-synth
+	rm -f example/fm-synth.o

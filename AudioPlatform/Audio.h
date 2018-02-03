@@ -1,7 +1,7 @@
 #ifndef __240C_AUDIO__
 #define __240C_AUDIO__
 
-#include "RtAudio.h"
+#include "rtaudio/RtAudio.h"
 
 namespace ap {
 

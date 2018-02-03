@@ -1,7 +1,7 @@
 #ifndef __240C_MIDI__
 #define __240C_MIDI__
 
-#include "RtMidi.h"
+#include "rtmidi/RtMidi.h"
 
 namespace ap {
 

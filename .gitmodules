@@ -1,15 +1,15 @@
 [submodule "rtaudio"]
-	path = rtaudio
+	path = external/rtaudio
 	url = https://github.com/thestk/rtaudio.git
 [submodule "imgui"]
-	path = imgui
+	path = external/imgui
 	url = https://github.com/ocornut/imgui.git
 [submodule "AudioFile"]
-	path = AudioFile
+	path = external/AudioFile
 	url = https://github.com/adamstark/AudioFile.git
 [submodule "rtmidi"]
-	path = rtmidi
+	path = external/rtmidi
 	url = https://github.com/thestk/rtmidi.git
 [submodule "AudioFFT"]
-	path = AudioFFT
+	path = external/AudioFFT
 	url = https://github.com/HiFi-LoFi/AudioFFT

@@ -1,11 +1,12 @@
 #ifndef __240C_VISUAL__
 #define __240C_VISUAL__
 
-#include <GL/gl3w.h>
+#include "GL/gl3w.h"
+// order matters; must be first
 #include <GLFW/glfw3.h>
-#include <imgui.h>
-#include <stdio.h>
-#include "imgui_impl_glfw_gl3.h"
+//#include <stdio.h>
+#include "imgui.h"                // external/imgui/
+#include "imgui_impl_glfw_gl3.h"  // external/imgui/examples/opengl3_example/
 
 namespace ap {
 
