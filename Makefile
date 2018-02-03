@@ -20,8 +20,7 @@ INC += -I ./
 INC += -I external/ 
 # imgui
 INC += -I external/imgui/
-INC += -I external/imgui/examples/libs/gl3w/
-INC += -I external/imgui/examples/opengl3_example/
+INC += -I external/imgui/examples/opengl2_example/
 
 LIB=
 
@@ -67,8 +66,7 @@ OBJ=
 OBJ += external/AudioFile/AudioFile.o
 OBJ += external/rtaudio/RtAudio.o
 OBJ += external/rtmidi/RtMidi.o
-OBJ += external/imgui/examples/libs/gl3w/GL/gl3w.o
-OBJ += external/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.o
+OBJ += external/imgui/examples/opengl2_example/imgui_impl_glfw.o
 OBJ += external/imgui/imgui.o
 OBJ += external/imgui/imgui_demo.o
 OBJ += external/imgui/imgui_draw.o
