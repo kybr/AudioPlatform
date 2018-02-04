@@ -2,6 +2,7 @@
 #define __240C_SYNTHS__
 
 #include "AudioFile/AudioFile.h"
+#include <cmath>
 
 namespace ap {
 
@@ -136,7 +137,7 @@ struct SamplePlayer : Table {
     playbackRate = audioFile.getSampleRate();
     assert(audioFile.getNumSamplesPerChannel() > 0);
     zeros(audioFile.getNumSamplesPerChannel());
-    for (int i = 0; i < size; ++i) data[i] = audioFile.samples[0][i];
+    for (unsigned i = 0; i < size; ++i) data[i] = audioFile.samples[0][i];
     frequency(1.0f);
 
     printf("%s -> %d samples @ %f Hz\n", filePath.c_str(), size, playbackRate);
