@@ -31,8 +31,14 @@ struct Visual {
   }
 
   virtual void visual() {}
+  virtual void setup() {}
 
   void loop() {
+    bool firstTime = true;
+    if (firstTime) {
+      firstTime = false;
+      setup();
+    }
     while (!glfwWindowShouldClose(window)) {
       // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
       // tell if dear imgui wants to use your inputs.

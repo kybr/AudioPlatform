@@ -3,10 +3,12 @@
 is a mini-framework for teaching digital audio programming
 
 
+![](Formant-Synth.png)
+
 ## Dependenceies
 - GLFW
 - ImGui
-- rtaudio.
+- rtaudio
 - rtmidi
 
 ## Linux
