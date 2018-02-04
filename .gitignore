@@ -3,6 +3,3 @@ tmp/
 *.o
 Debug/
 imgui.ini
-*.wav
-*.png
-*.jpg
