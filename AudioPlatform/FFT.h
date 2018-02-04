@@ -2,6 +2,7 @@
 #define __AP_FFT__
 
 #include <vector>
+#include <cmath>
 #include "AudioFFT/AudioFFT.h"
 
 namespace ap {
