@@ -5,9 +5,13 @@ This is a mini-framework for teaching digital audio programming.
 Goals:
 
 - Few dependencies
-- Conceptually simple implementations
+- Conceptually simple implementations, when possible
 - Permissive licenses
-- [Emscripten](https://github.com/kripken/emscripten)-able to browsers
+- Portable; It should build and run on:
+  + Linux
+  + Windows
+  + macOS
+  + The browser via [Emscripten](https://github.com/kripken/emscripten)
 
 ![](Formant-Synth.png)
 
