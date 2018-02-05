@@ -63,7 +63,6 @@ ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
 endif
 
 OBJ=
-OBJ += external/AudioFile/AudioFile.o
 OBJ += external/rtaudio/RtAudio.o
 OBJ += external/rtmidi/RtMidi.o
 OBJ += external/imgui/examples/opengl2_example/imgui_impl_glfw.o
@@ -78,7 +77,9 @@ OBJ += external/AudioFFT/AudioFFT.o
 %.o: %.c
 	cc $(INC) -c -o $@ $<
 
-_: app example/fm-synth example/formant-synth example/sampler
+EXE = app example/fm-synth example/formant-synth example/sampler tool/read-wav tool/write-wav tool/sine tool/sawtooth tool/sine-sweep tool/fft-synth
+
+_: $(EXE)
 
 app: app.o $(OBJ)
 	$(CXX) -o $@ $^ $(LIB) 
@@ -92,13 +93,27 @@ example/formant-synth: example/formant-synth.o $(OBJ)
 example/fm-synth: example/fm-synth.o $(OBJ)
 	$(CXX) -o $@ $^ $(LIB) 
 
+tool/read-wav: tool/read-wav.o $(OBJ)
+	$(CXX) -o $@ $^ $(LIB)
+
+tool/write-wav: tool/write-wav.o $(OBJ)
+	$(CXX) -o $@ $^ $(LIB)
+
+tool/sine: tool/sine.o $(OBJ)
+	$(CXX) -o $@ $^ $(LIB)
+
+tool/sawtooth: tool/sawtooth.o $(OBJ)
+	$(CXX) -o $@ $^ $(LIB)
+
+tool/sine-sweep: tool/sine-sweep.o $(OBJ)
+	$(CXX) -o $@ $^ $(LIB)
+
+tool/additive-synth: tool/additive-synth.o $(OBJ)
+	$(CXX) -o $@ $^ $(LIB)
+
+tool/fft-synth: tool/fft-synth.o $(OBJ)
+	$(CXX) -o $@ $^ $(LIB)
+
+
 clean:
-	rm -f $(OBJ)
-	rm -f app
-	rm -f app.o
-	rm -f example/formant-synth
-	rm -f example/formant-synth.o
-	rm -f example/fm-synth
-	rm -f example/fm-synth.o
-	rm -f example/sampler
-	rm -f example/sampler.o
+	rm -f $(OBJ) $(EXE)

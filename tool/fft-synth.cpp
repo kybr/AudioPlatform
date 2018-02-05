@@ -1,7 +1,7 @@
 #include <cmath>  // std::sin, std::pow, M_PI
 #include <iostream>
 #include <vector>
-#include "FFT.h"
+#include "AudioPlatform/FFT.h"
 
 float mtof(float m) { return 8.175799f * powf(2.0f, m / 12.0f); }
 
