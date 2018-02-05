@@ -1,11 +1,10 @@
 #ifndef __240C_SYNTHS__
 #define __240C_SYNTHS__
 
-#include "AudioFile/AudioFile.h"
 #include <cmath>
+#include "Wav.h"
 
 namespace ap {
-
 // Timer t;
 // t.period(1);
 // // ...
@@ -15,11 +14,12 @@ namespace ap {
 //     // reset an oscillator
 //   }
 //
+///////////////////////////////////////////////////////////////////////////////
+///
+///////////////////////////////////////////////////////////////////////////////
 struct Timer {
   float phase = 0.0f, increment = 0.0f;
-  // Karl, what are the units?
   void period(float t) { increment = 1.0f / (t * sampleRate); }
-  // void period(float t) { increment = (1.0f / t) / sampleRate; }
 
   virtual bool operator()() {
     phase += increment;
@@ -27,7 +27,6 @@ struct Timer {
       phase -= 1.0f;
       return true;
     };
-    // if you happen to be running a timer backwards!? necessary?
     if (phase < 0.0f) {
       phase += 1.0f;
       return true;
@@ -36,10 +35,6 @@ struct Timer {
   }
 };
 
-// Phasor p;
-// p.frequency(220)
-// ...
-// float s = p(); // (0, 1)
 struct Phasor {
   Timer timer;
   void frequency(float f) { timer.period(1.0f / f); }
@@ -130,14 +125,27 @@ struct Sine : Table {
 
 struct SamplePlayer : Table {
   float playbackRate;
-  SamplePlayer(std::string filePath) {
-    // https://github.com/adamstark/AudioFile
-    AudioFile<float> audioFile;
-    assert(audioFile.load(filePath));
-    playbackRate = audioFile.getSampleRate();
-    assert(audioFile.getNumSamplesPerChannel() > 0);
-    zeros(audioFile.getNumSamplesPerChannel());
-    for (unsigned i = 0; i < size; ++i) data[i] = audioFile.samples[0][i];
+
+  void load(std::string filePath, unsigned channel = 0) {
+    unsigned int channelCount;
+    unsigned int sampleRate;
+    drwav_uint64 totalSampleCount;
+
+    float* pSampleData = drwav_open_and_read_file_f32(
+        filePath.c_str(), &channelCount, &sampleRate, &totalSampleCount);
+
+    if (pSampleData == NULL) {
+      printf("ERROR\n");
+      exit(1);
+    }
+
+    //
+    playbackRate = sampleRate;
+    zeros(totalSampleCount);
+    //
+    for (unsigned i = 0; i < size; ++i)
+      data[i] = pSampleData[channelCount * i + channel];
+
     frequency(1.0f);
 
     printf("%s -> %d samples @ %f Hz\n", filePath.c_str(), size, playbackRate);

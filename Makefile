@@ -78,9 +78,12 @@ OBJ += external/AudioFFT/AudioFFT.o
 %.o: %.c
 	cc $(INC) -c -o $@ $<
 
-_: example/fm-synth example/formant-synth app
+_: app example/fm-synth example/formant-synth example/sampler
 
 app: app.o $(OBJ)
+	$(CXX) -o $@ $^ $(LIB) 
+
+example/sampler: example/sampler.o $(OBJ)
 	$(CXX) -o $@ $^ $(LIB) 
 
 example/formant-synth: example/formant-synth.o $(OBJ)
@@ -97,3 +100,5 @@ clean:
 	rm -f example/formant-synth.o
 	rm -f example/fm-synth
 	rm -f example/fm-synth.o
+	rm -f example/sampler
+	rm -f example/sampler.o

@@ -4,9 +4,6 @@
 [submodule "imgui"]
 	path = external/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "AudioFile"]
-	path = external/AudioFile
-	url = https://github.com/adamstark/AudioFile.git
 [submodule "rtmidi"]
 	path = external/rtmidi
 	url = https://github.com/thestk/rtmidi.git
