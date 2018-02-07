@@ -112,6 +112,12 @@ struct Noise : Table {
     zeros(size);
     for (unsigned i = 0; i < size; ++i)
       data[i] = 2.0f * (random() / float(RAND_MAX)) - 1.0f;
+
+    // normalize
+    float max = 0;
+    for (unsigned i = 0; i < size; ++i)
+      if (max < abs(data[i])) max = data[i];
+    for (unsigned i = 0; i < size; ++i) data[i] /= max;
   }
 };
 

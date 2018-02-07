@@ -2,9 +2,8 @@
 #define __240C_VISUAL__
 
 #include <GLFW/glfw3.h>
-//#include <stdio.h>
-#include "imgui.h"            // external/imgui/
-#include "imgui_impl_glfw.h"  // external/imgui/examples/opengl2_example/
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
 
 namespace ap {
 
