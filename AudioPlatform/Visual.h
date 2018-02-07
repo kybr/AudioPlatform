@@ -3,6 +3,7 @@
 
 #include <GLFW/glfw3.h>
 //#include <stdio.h>
+#include "AudioPlatform/Audio.h"
 #include "imgui.h"            // external/imgui/
 #include "imgui_impl_glfw.h"  // external/imgui/examples/opengl2_example/
 
@@ -33,12 +34,15 @@ struct Visual {
   virtual void visual() {}
   virtual void setup() {}
 
+  void start() { loop(); }
+
   void loop() {
     bool firstTime = true;
     if (firstTime) {
       firstTime = false;
       setup();
     }
+    reinterpret_cast<Audio*>(this)->start();
     while (!glfwWindowShouldClose(window)) {
       // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
       // tell if dear imgui wants to use your inputs.

@@ -14,11 +14,13 @@ int cb(void *, void *, unsigned int, double, RtAudioStreamStatus, void *);
 struct Audio {
   RtAudio dac;
 
-  Audio() {
-    if (dac.getDeviceCount() < 1) {
-      std::cout << "\nNo audio devices found!\n";
-      exit(1);
-    }
+  void start() {
+  //RtAudio::Api getCurrentApi() { return RtAudio::LINUX_ALSA; }
+
+    //if (dac.getDeviceCount() < 1) {
+    //  std::cout << "\nNo audio devices found!\n";
+    //  exit(1);
+    //}
 
     dac.showWarnings(true);
 

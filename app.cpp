@@ -23,9 +23,19 @@ struct App : Visual, Audio {
     history.resize(historySize, 0);
     _history.resize(historySize, 0);
     fft.setup(historySize);
+    printf("history size: %lu\n", history.size());
+    printf("setup called\n");
+    fflush(stdout);
   }
 
   void audio(float* out) {
+    static bool firstTime = true;
+    if (firstTime) {
+      firstTime = false;
+      printf("history size: %lu\n", history.size());
+      printf("audio called\n");
+      fflush(stdout);
+    }
     // "static" variables are scoped to the block (in this case the function)
     // and their value is persistent. statics are also used in the GUI blocks
     // later.
@@ -63,6 +73,13 @@ struct App : Visual, Audio {
   }
 
   void visual() {
+    static bool firstTime = true;
+    if (firstTime) {
+      firstTime = false;
+      printf("history size: %lu\n", history.size());
+      printf("visual called\n");
+      fflush(stdout);
+    }
     // this stuff makes a single "root" window
     int windowWidth, windowHeight;
     glfwGetWindowSize(window, &windowWidth, &windowHeight);
