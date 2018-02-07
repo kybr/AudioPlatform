@@ -1,14 +1,12 @@
 #include <mutex>
-#include "AudioPlatform/Audio.h"
 #include "AudioPlatform/FFT.h"
 #include "AudioPlatform/Helpers.h"
+#include "AudioPlatform/AudioVisual.h"
 #include "AudioPlatform/Synths.h"
-#include "AudioPlatform/Visual.h"
 
-// the AudioPlatform framework now uses the namespace "ap"
 using namespace ap;
 
-struct App : Visual, Audio {
+struct App : AudioVisual {
   const unsigned historySize = 4 * blockSize;
   FFT fft;
 
@@ -19,23 +17,13 @@ struct App : Visual, Audio {
   std::mutex m;
   std::vector<float> history, _history;
 
-  App() {
+  void setup() override {
     history.resize(historySize, 0);
     _history.resize(historySize, 0);
     fft.setup(historySize);
-    printf("history size: %lu\n", history.size());
-    printf("setup called\n");
-    fflush(stdout);
   }
 
-  void audio(float* out) {
-    static bool firstTime = true;
-    if (firstTime) {
-      firstTime = false;
-      printf("history size: %lu\n", history.size());
-      printf("audio called\n");
-      fflush(stdout);
-    }
+  void audio(float* out) override {
     // "static" variables are scoped to the block (in this case the function)
     // and their value is persistent. statics are also used in the GUI blocks
     // later.
@@ -72,14 +60,7 @@ struct App : Visual, Audio {
     }
   }
 
-  void visual() {
-    static bool firstTime = true;
-    if (firstTime) {
-      firstTime = false;
-      printf("history size: %lu\n", history.size());
-      printf("visual called\n");
-      fflush(stdout);
-    }
+  void visual() override {
     // this stuff makes a single "root" window
     int windowWidth, windowHeight;
     glfwGetWindowSize(window, &windowWidth, &windowHeight);
@@ -155,7 +136,4 @@ struct App : Visual, Audio {
   }
 };
 
-int main() {
-  App app;
-  app.loop();
-}
+int main() { App().start(); }
