@@ -1,7 +1,7 @@
 #include <mutex>
+#include "AudioPlatform/AudioVisual.h"
 #include "AudioPlatform/FFT.h"
 #include "AudioPlatform/Helpers.h"
-#include "AudioPlatform/AudioVisual.h"
 #include "AudioPlatform/Synths.h"
 
 using namespace ap;

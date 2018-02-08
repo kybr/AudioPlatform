@@ -70,6 +70,7 @@ OBJ += external/imgui/imgui.o
 OBJ += external/imgui/imgui_demo.o
 OBJ += external/imgui/imgui_draw.o
 OBJ += external/AudioFFT/AudioFFT.o
+OBJ += source/AudioVisual.o
 
 %.o: %.cpp
 	$(CXX) $(INC) -c -o $@ $<

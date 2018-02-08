@@ -2,6 +2,7 @@
 #define __240C_SYNTHS__
 
 #include <cmath>
+#include <string>
 #include "Wav.h"
 
 namespace ap {
@@ -19,7 +20,8 @@ namespace ap {
 ///////////////////////////////////////////////////////////////////////////////
 struct Timer {
   float phase = 0.0f, increment = 0.0f;
-  void period(float t) { increment = 1.0f / (t * sampleRate); }
+  void period(float s) { increment = 1.0f / (s * sampleRate); }
+  void frequency(float hz) { period(1 / hz); }
 
   virtual bool operator()() {
     phase += increment;
@@ -36,14 +38,15 @@ struct Timer {
 };
 
 struct Phasor {
-  Timer timer;
-  void frequency(float f) { timer.period(1.0f / f); }
-
-  virtual void trigger() {}
+  float phase = 0.0f, increment = 0.0f;
+  void frequency(float hz) { increment = hz / sampleRate; }
+  void period(float s) { frequency(1 / s); }
   virtual float operator()() { return nextValue(); }
   virtual float nextValue() {
-    float returnValue = timer.phase;
-    if (timer()) trigger();
+    float returnValue = phase;
+    phase += increment;
+    if (phase > 1.0f) phase -= 1.0f;
+    if (phase < 0.0f) phase += 1.0f;  // sure; handle negative frequency
     return returnValue;
   }
 };
