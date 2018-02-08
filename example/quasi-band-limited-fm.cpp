@@ -4,54 +4,125 @@
 #include "AudioPlatform/Helpers.h"
 #include "AudioPlatform/Synths.h"
 
-using namespace ap;
+struct QuasiBandlimited {
+  //
+  // "Synthesis of Quasi-Bandlimited Analog Waveforms Using Frequency
+  // Modulation"
+  //   by Peter Schoffhauzer
+  // (http://scp.web.elte.hu/papers/synthesis1.pdf)
+  //
+  const float a0 = 2.5;   // precalculated coeffs
+  const float a1 = -1.5;  // for HF compensation
 
-struct SawMinBLEP : SamplePlayer {
-  float phase = 0.0f, increment = 0.0f;
-  void frequency(float hz) {
-    increment = hz / sampleRate;
-    // SamplePlayer::frequency(hz * 3);
+  // variables
+  float osc;      // output of the saw oscillator
+  float osc2;     // output of the saw oscillator 2
+  float phase;    // phase accumulator
+  float w;        // normalized frequency
+  float scaling;  // scaling amount
+  float DC;       // DC compensation
+  float norm;     // normalization amount
+  float last;     // delay for the HF filter
+
+  float Frequency, Filter, PulseWidth;
+
+  QuasiBandlimited() {
+    reset();
+    Frequency = 1.0;
+    Filter = 1.0;
+    PulseWidth = 0.5;
+    recalculate();
   }
-  void period(float s) { frequency(1 / s); }
-  virtual float operator()() { return nextValue(); }
-  virtual float nextValue() {
-    //    float returnValue = phase;
-    phase += increment;
-    if (phase > 1.0f) {
-      // phase wrapped; reset MinBLEP
-      SamplePlayer::phase = 0;
-      phase -= 1.0f;
-    }
-    if (phase < 0.0f) {
-      // phase wrapped; reset MinBLEP
-      SamplePlayer::phase = 0;
-      phase += 1.0f;  // sure; handle negative frequency
-    }
-    return (2 * phase - 1) + (2 - (2 * SamplePlayer::nextValue()));
-    // return (2 * returnValue - 1) + (2 - (2 * SamplePlayer::nextValue()));
+
+  void reset() {
+    // zero oscillator and phase
+    osc = 0.0;
+    osc2 = 0.0;
+    phase = 0.0;
+  }
+
+  void recalculate() {
+    w = Frequency / ap::sampleRate;  // normalized frequency
+    float n = 0.5 - w;
+    scaling = Filter * 13.0f * powf(n, 4.0f);  // calculate scaling
+    DC = 0.376 - w * 0.752;                    // calculate DC compensation
+    norm = 1.0 - 2.0 * w;                      // calculate normalization
+  }
+
+  void frequency(float f) {
+    Frequency = f;
+    recalculate();
+  }
+
+  void filter(float f) {
+    Filter = f;
+    recalculate();
+  }
+
+  void pulseWidth(float w) {
+    PulseWidth = w;
+    recalculate();
+  }
+
+  void step() {
+    // increment accumulator
+    phase += 2.0 * w;
+    if (phase >= 1.0) phase -= 2.0;
+    if (phase <= -1.0) phase += 2.0;
+  }
+
+  // process loop for creating a bandlimited saw wave
+  float saw() {
+    step();
+
+    // calculate next sample
+    osc = (osc + sinf(2 * M_PI * (phase + osc * scaling))) * 0.5;
+    // compensate HF rolloff
+    float out = a0 * osc + a1 * last;
+    last = osc;
+    out = out + DC;     // compensate DC offset
+    return out * norm;  // store normalized result
+  }
+
+  // process loop for creating a bandlimited PWM pulse
+  float pulse() {
+    step();
+
+    // calculate saw1
+    osc = (osc + sinf(2 * M_PI * (phase + osc * scaling))) * 0.5;
+    // calculate saw2
+    osc2 =
+        (osc2 + sinf(2 * M_PI * (phase + osc2 * scaling + PulseWidth))) * 0.5;
+    float out = osc - osc2;  // subtract two saw waves
+    // compensate HF rolloff
+    out = a0 * out + a1 * last;
+    last = osc;
+    return out * norm;  // store normalized result
   }
 };
+
+// the AudioPlatform framework now uses the namespace "ap"
+using namespace ap;
 
 struct App : AudioVisual {
   const unsigned historySize = 4 * blockSize;
   FFT fft;
 
-  SawMinBLEP saw;
+  QuasiBandlimited quasi;
   Line gain;
   Line frequency;
-  Line playerFrequency;
+  Line filter;
 
   std::mutex m;
   std::vector<float> history, _history;
 
-  void setup() override {
+  void setup() {
     history.resize(historySize, 0);
     _history.resize(historySize, 0);
     fft.setup(historySize);
-    saw.load("MinBLEP.wav");
   }
 
-  void audio(float* out) override {
+  void audio(float* out) {
     // "static" variables are scoped to the block (in this case the function)
     // and their value is persistent. statics are also used in the GUI blocks
     // later.
@@ -62,12 +133,11 @@ struct App : AudioVisual {
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
       // set the frequency of the sine oscillator using the Line class to smooth
       // out jumps control values
-      float v = frequency();
-      saw.frequency(v);
-      saw.SamplePlayer::frequency(v * playerFrequency());
+      quasi.filter(filter());
+      quasi.frequency(frequency());
 
       // compute the next sample
-      float f = saw() * gain();
+      float f = quasi.saw() * gain();
 
       // copy the sample to the right and left output channels
       out[i + 1] = out[i + 0] = f;
@@ -90,7 +160,7 @@ struct App : AudioVisual {
     }
   }
 
-  void visual() override {
+  void visual() {
     // this stuff makes a single "root" window
     int windowWidth, windowHeight;
     glfwGetWindowSize(window, &windowWidth, &windowHeight);
@@ -110,9 +180,10 @@ struct App : AudioVisual {
     ImGui::SliderFloat("Frequency (MIDI)", &note, 0, 127);
     frequency.set(mtof(note), 50.0f);
 
-    static float freq = 1;
-    ImGui::SliderFloat("factor", &freq, 0, 5);
-    playerFrequency.set(freq, 50.0f);
+    // make a slider for note value (frequency)
+    static float fil = 0.1;
+    ImGui::SliderFloat("\"Filter\"", &fil, 0, 1);
+    filter.set(fil, 50.0f);
 
     // get the lock (mutex); this will block, waiting for the audio thread to
     // release the lock. lock() waits while try_lock() does not.

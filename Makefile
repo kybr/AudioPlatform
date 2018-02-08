@@ -83,7 +83,7 @@ EXE += app
 EXE += example/fm-synth
 EXE += example/formant-synth
 EXE += example/sampler
-#EXE += example/quasi-band-limited-fm
+EXE += example/quasi-band-limited-fm
 EXE += tool/read-wav
 EXE += tool/write-wav
 EXE += tool/sine
@@ -126,8 +126,8 @@ tool/additive-synth: tool/additive-synth.o $(OBJ)
 tool/fft-synth: tool/fft-synth.o $(OBJ)
 	$(CXX) -o $@ $^ $(LIB)
 
-#example/quasi-band-limited-fm: example/quasi-band-limited-fm.o $(OBJ)
-#	$(CXX) -o $@ $^ $(LIB)
+example/quasi-band-limited-fm: example/quasi-band-limited-fm.o $(OBJ)
+	$(CXX) -o $@ $^ $(LIB)
 
 
 clean:
