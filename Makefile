@@ -78,7 +78,18 @@ OBJ += source/AudioVisual.o
 %.o: %.c
 	cc $(INC) -c -o $@ $<
 
-EXE = app example/fm-synth example/formant-synth example/sampler tool/read-wav tool/write-wav tool/sine tool/sawtooth tool/sine-sweep tool/fft-synth
+EXE=
+EXE += app
+EXE += example/fm-synth
+EXE += example/formant-synth
+EXE += example/sampler
+#EXE += example/quasi-band-limited-fm
+EXE += tool/read-wav
+EXE += tool/write-wav
+EXE += tool/sine
+EXE += tool/sawtooth
+EXE += tool/sine-sweep
+EXE += tool/fft-synth
 
 _: $(EXE)
 
@@ -114,6 +125,9 @@ tool/additive-synth: tool/additive-synth.o $(OBJ)
 
 tool/fft-synth: tool/fft-synth.o $(OBJ)
 	$(CXX) -o $@ $^ $(LIB)
+
+#example/quasi-band-limited-fm: example/quasi-band-limited-fm.o $(OBJ)
+#	$(CXX) -o $@ $^ $(LIB)
 
 
 clean:
