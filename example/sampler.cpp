@@ -1,9 +1,8 @@
 #include <mutex>
-#include "AudioPlatform/Audio.h"
+#include "AudioPlatform/AudioVisual.h"
 #include "AudioPlatform/FFT.h"
 #include "AudioPlatform/Helpers.h"
 #include "AudioPlatform/Synths.h"
-#include "AudioPlatform/Visual.h"
 
 using namespace ap;
 
@@ -12,7 +11,7 @@ void make_hann(std::vector<float>& window) {
     window[n] = (1 - cos(2 * M_PI * n / (window.size() - 1))) / 2;
 }
 
-struct App : Visual, Audio {
+struct App : AudioVisual {
   const unsigned historySize = 4 * blockSize;
   FFT fft;
 
@@ -150,7 +149,4 @@ struct App : Visual, Audio {
   }
 };
 
-int main() {
-  App app;
-  app.loop();
-}
+int main() { App().start(); }

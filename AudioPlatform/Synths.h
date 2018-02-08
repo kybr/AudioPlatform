@@ -104,7 +104,7 @@ struct Table : Phasor, FloatArrayWithLinearInterpolation {
 
   float operator()() { return nextValue(); }
   float nextValue() {
-    const float v = get(timer.phase * size);
+    const float v = get(phase * size);
     Phasor::nextValue();
     return v;
   }
@@ -271,7 +271,7 @@ struct HardSyncMultiSynth : MultiSynth {
   MultiSynth* other = nullptr;
   void trigger() {
     if (other == nullptr) return;
-    if (sync) other->timer.phase = 0.0f;
+    if (sync) other->phase = 0.0f;
     // if (sync) other->phase = 0.999999f;
   }
 };

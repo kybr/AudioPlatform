@@ -1,17 +1,16 @@
 #include <mutex>
-#include "AudioPlatform/Audio.h"
+#include "AudioPlatform/AudioVisual.h"
 #include "AudioPlatform/Helpers.h"
 #include "AudioPlatform/Synths.h"
-#include "AudioPlatform/Visual.h"
 
 using namespace ap;
 
-struct App : Visual, Audio {
+struct App : AudioVisual {
   Sine sine;
   Line gain;
   Line frequency;
 
-  App() {}
+  void setup() {}
 
   void audio(float* out) {
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
@@ -47,7 +46,4 @@ struct App : Visual, Audio {
   }
 };
 
-int main() {
-  App app;
-  app.loop();
-}
+int main() { App().start(); }
