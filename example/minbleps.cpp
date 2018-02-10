@@ -51,7 +51,7 @@ struct App : AudioVisual {
     history.resize(historySize, 0);
     _history.resize(historySize, 0);
     fft.setup(historySize);
-    saw.load("MinBLEP.wav");
+    saw.load("media/MinBLEP.wav");
   }
 
   void audio(float* out) override {
