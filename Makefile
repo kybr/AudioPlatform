@@ -9,7 +9,7 @@ CXX += -std=c++14
 CXX += -Wall
 CXX += -Wextra
 CXX += -Wno-unused-parameter
-CXX += -Werror
+#CXX += -Werror
 CXX += -O3
 
 INC=

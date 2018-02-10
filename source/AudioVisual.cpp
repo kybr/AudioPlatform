@@ -11,6 +11,7 @@
 #include "imgui_impl_glfw.h"
 
 #include <map>
+#include <cmath>
 
 #include "AudioPlatform/Globals.h"
 
