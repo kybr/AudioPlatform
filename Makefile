@@ -44,12 +44,7 @@ ifeq ($(UNAME_S), Darwin) #APPLE
 	LIB += -framework CoreFoundation
 	LIB += -framework CoreAudio
 	LIB += -framework CoreMIDI
-
-# need these?
 	LIB += -framework OpenGL
-#LIB += -framework Cocoa
-#LIB += -framework IOKit
-#LIB += -framework CoreVideo
 endif
 
 ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)

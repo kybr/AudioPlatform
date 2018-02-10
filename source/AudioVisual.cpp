@@ -12,6 +12,8 @@
 
 #include <map>
 
+#include "AudioPlatform/Globals.h"
+
 namespace ap {
 
 float mtof(float m) { return 8.175799 * powf(2.0f, m / 12.0f); }

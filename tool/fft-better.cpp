@@ -1,7 +1,6 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
-#include "AudioPlatform/Audio.h"
 #include "AudioPlatform/FFT.h"
 #include "AudioPlatform/Synths.h"
 
@@ -11,8 +10,7 @@ int windowSize = 65536;
 float sampleRate = 44100;
 float nyquistFrequency = sampleRate / 2;
 
-void set(ap::FloatArrayWithLinearInterpolation& magarr, float frequency,
-         float magnitude) {
+void set(ap::Array& magarr, float frequency, float magnitude) {
   float normalizedFrequency = frequency / nyquistFrequency;
   unsigned nyquistIndex = magarr.size - 1;
 
@@ -21,7 +19,7 @@ void set(ap::FloatArrayWithLinearInterpolation& magarr, float frequency,
   float index = normalizedFrequency * nyquistIndex;
 
   // linearly interpolating array write
-  magarr.set(index, magnitude * magarr.size);
+  magarr.add(index, magnitude * magarr.size);
 }
 
 int main() {
@@ -34,8 +32,8 @@ int main() {
 
   float frequency = mtof(60);  // middle-C is 60
 
-  ap::FloatArrayWithLinearInterpolation arr;
-  arr.zeros(fft.magnitude.size());
+  ap::Array arr;
+  arr.resize(fft.magnitude.size());
   // insert harmonics
   set(arr, frequency, 1);
   for (int h = 2; h < 23; h++) set(arr, frequency * h, 1.0f / h);

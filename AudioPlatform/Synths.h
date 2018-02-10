@@ -1,9 +1,11 @@
-#ifndef __240C_SYNTHS__
-#define __240C_SYNTHS__
+#ifndef __AP_SYNTHS__
+#define __AP_SYNTHS__
 
 #include <cmath>
 #include <string>
 #include "Wav.h"
+
+#include "AudioPlatform/Globals.h"
 
 namespace ap {
 
@@ -154,7 +156,10 @@ struct SamplePlayer : Table {
     drwav* pWav = drwav_open_file_write(filePath.c_str(), &format);
     drwav_uint64 samplesWritten = drwav_write(pWav, size, &data[0]);
     drwav_close(pWav);
-    assert(samplesWritten == size);
+    if (samplesWritten != size) {
+      fprintf(stderr, "ERROR\n");
+      exit(1);
+    }
   }
 
   void frequency(float f) { Phasor::frequency(f * playbackRate / size); }

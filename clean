@@ -1,5 +1,6 @@
 #!/bin/sh
 
+find . -name \*.a -print -exec rm {} \;
 find . -name \*.o -print -exec rm {} \;
 find . -name \*.exe -print -exec rm {} \;
 find . -name \*.dSYM -print -exec rm {} \;

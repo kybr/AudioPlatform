@@ -1,6 +1,5 @@
 #include <mutex>
 #include "AudioPlatform/AudioVisual.h"
-#include "AudioPlatform/Helpers.h"
 #include "AudioPlatform/Synths.h"
 
 using namespace ap;
@@ -11,7 +10,7 @@ struct App : AudioVisual {
   Line frequency;
 
   Timer timer;
-  App() { timer.period(500); }
+  void setup() { timer.period(500); }
 
   void audio(float* out) {
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
@@ -50,7 +49,4 @@ struct App : AudioVisual {
   }
 };
 
-int main() {
-  App app;
-  app.loop();
-}
+int main() { App().start(); }

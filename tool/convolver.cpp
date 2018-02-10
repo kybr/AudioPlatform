@@ -1,7 +1,6 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
-#include "AudioPlatform/Audio.h"
 #include "AudioPlatform/Synths.h"
 
 using namespace std;
@@ -16,7 +15,7 @@ void convolve(const vector<float> &f, const vector<float> &g,
     int i1 = i;
     float tmp = 0.0;
     for (unsigned j = 0; j < g.size(); j++) {
-      if (i1 >= 0 && i1 < f.size())
+      if (i1 >= 0 && i1 < (int)f.size())
         // accumulate
         tmp = tmp + (f[i1] * g[j]);
       i1 = i1 - 1;
@@ -53,7 +52,7 @@ int main(int argc, char *argv[]) {
   convolve(a, b, c);
   normalize(c);
   SamplePlayer out;
-  out.zeros(c.size());
+  out.resize(c.size());
   for (unsigned i = 0; i < c.size(); ++i) out.data[i] = c[i];
   out.save();
 }

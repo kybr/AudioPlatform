@@ -1,5 +1,5 @@
-#ifndef __240C_MIDI__
-#define __240C_MIDI__
+#ifndef __AP_MIDI__
+#define __AP_MIDI__
 
 #include <vector>
 #include "rtmidi/RtMidi.h"

@@ -1,5 +1,5 @@
-#ifndef __AUDIO_VISUAL__
-#define __AUDIO_VISUAL__
+#ifndef __AP_AUDIO_VISUAL__
+#define __AP_AUDIO_VISUAL__
 
 // OpenGL
 #include <GLFW/glfw3.h>
@@ -19,10 +19,6 @@ float mtof(float m);
 float ftom(float f);
 float dbtoa(float db);
 float atodb(float a);
-
-static unsigned channelCount = 2;
-static float sampleRate = 44100.0f;
-static unsigned blockSize = 512;
 
 class AudioVisual {
  public:
