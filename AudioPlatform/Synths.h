@@ -6,24 +6,21 @@
 #include "Wav.h"
 
 namespace ap {
-// Timer t;
-// t.period(1);
-// // ...
-// for each sample
-// ...
-//   if (t()) {
-//     // reset an oscillator
-//   }
-//
-///////////////////////////////////////////////////////////////////////////////
-///
-///////////////////////////////////////////////////////////////////////////////
+
+void normalize(float* data, unsigned size) {
+  float max = 0;
+  for (unsigned i = 0; i < size; ++i)
+    if (max < abs(data[i])) max = data[i];
+  for (unsigned i = 0; i < size; ++i) data[i] /= max;
+}
+
 struct Timer {
   float phase = 0.0f, increment = 0.0f;
   void period(float s) { increment = 1.0f / (s * sampleRate); }
   void frequency(float hz) { period(1 / hz); }
 
-  virtual bool operator()() {
+  virtual bool operator()() { return nextValue(); }
+  virtual bool nextValue() {
     phase += increment;
     if (phase > 1.0f) {
       phase -= 1.0f;
@@ -51,20 +48,20 @@ struct Phasor {
   }
 };
 
-struct FloatArray {
+struct Array {
   float* data = nullptr;
   unsigned size = 0;
 
-  virtual ~FloatArray() {
-    if (data != nullptr) delete[] data;
+  virtual ~Array() {
+    if (data) delete[] data;
   }
 
-  float operator[](unsigned index) { return data[index]; }
+  float& operator[](unsigned index) { return data[index]; }
+  float operator[](const float index) const { return get(index); }
 
-  // a way to resize
-  void zeros(unsigned n) {
+  void resize(unsigned n) {
     size = n;
-    if (data != nullptr) delete[] data;  // or your have a memory leak
+    if (data) delete[] data;  // or your have a memory leak
     if (n == 0) {
       data = nullptr;
     } else {
@@ -72,10 +69,7 @@ struct FloatArray {
       for (unsigned i = 0; i < n; ++i) data[i] = 0.0f;
     }
   }
-};
 
-struct FloatArrayWithLinearInterpolation : FloatArray {
-  float operator[](const float index) const { return get(index); }
   float get(const float index) const {
     const unsigned i = floor(index);
     const float x0 = data[i];
@@ -84,13 +78,7 @@ struct FloatArrayWithLinearInterpolation : FloatArray {
     return x1 * t + x0 * (1 - t);
   }
 
-  // XXX extra credit and respect if you can somehow overload the [] and
-  // assignment = operators to make this work
-  // FloatArrayWithLinearInterpolation arr;
-  // arr.zeros(100);
-  // arr[6.8] = 12;
-  //
-  void set(const float index, const float value) {
+  void add(const float index, const float value) {
     const unsigned i = floor(index);
     const unsigned j = (i == (size - 1)) ? 0 : i + 1;  // looping semantics
     const float t = index - i;
@@ -99,8 +87,8 @@ struct FloatArrayWithLinearInterpolation : FloatArray {
   }
 };
 
-struct Table : Phasor, FloatArrayWithLinearInterpolation {
-  Table(unsigned size = 4096) { zeros(size); }
+struct Table : Phasor, Array {
+  Table(unsigned size = 4096) { resize(size); }
 
   float operator()() { return nextValue(); }
   float nextValue() {
@@ -112,22 +100,18 @@ struct Table : Phasor, FloatArrayWithLinearInterpolation {
 
 struct Noise : Table {
   Noise(unsigned size = 10000) {
-    zeros(size);
+    resize(size);
     for (unsigned i = 0; i < size; ++i)
       data[i] = 2.0f * (random() / float(RAND_MAX)) - 1.0f;
 
-    // normalize
-    float max = 0;
-    for (unsigned i = 0; i < size; ++i)
-      if (max < abs(data[i])) max = data[i];
-    for (unsigned i = 0; i < size; ++i) data[i] /= max;
+    normalize(data, size);
   }
 };
 
 struct Sine : Table {
   Sine(unsigned size = 10000) {
     const float pi2 = M_PI * 2;
-    zeros(size);
+    resize(size);
     for (unsigned i = 0; i < size; ++i) data[i] = sinf(i * pi2 / size);
   }
 };
@@ -150,7 +134,7 @@ struct SamplePlayer : Table {
 
     //
     playbackRate = sampleRate;
-    zeros(totalSampleCount);
+    resize(totalSampleCount);
     //
     for (unsigned i = 0; i < size; ++i)
       data[i] = pSampleData[channelCount * i + channel];
@@ -158,6 +142,19 @@ struct SamplePlayer : Table {
     frequency(1.0f);
 
     printf("%s -> %d samples @ %f Hz\n", filePath.c_str(), size, playbackRate);
+  }
+
+  void save(std::string filePath = "out.wav") {
+    drwav_data_format format;
+    format.channels = 1;
+    format.container = drwav_container_riff;
+    format.format = DR_WAVE_FORMAT_IEEE_FLOAT;
+    format.sampleRate = 44100;  // XXX hack for now
+    format.bitsPerSample = 32;
+    drwav* pWav = drwav_open_file_write(filePath.c_str(), &format);
+    drwav_uint64 samplesWritten = drwav_write(pWav, size, &data[0]);
+    drwav_close(pWav);
+    assert(samplesWritten == size);
   }
 
   void frequency(float f) { Phasor::frequency(f * playbackRate / size); }
@@ -383,6 +380,7 @@ class Biquad {
   }
 };
 
+// actually an ADR
 struct ADSR {
   float a, d, s, r;
   Line attack, decay, release;

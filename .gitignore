@@ -1,5 +1,6 @@
-app
 tmp/
 *.o
+*.a
+*.exe
 Debug/
 imgui.ini

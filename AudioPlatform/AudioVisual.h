@@ -15,6 +15,11 @@
 
 namespace ap {
 
+float mtof(float m);
+float ftom(float f);
+float dbtoa(float db);
+float atodb(float a);
+
 static unsigned channelCount = 2;
 static float sampleRate = 44100.0f;
 static unsigned blockSize = 512;

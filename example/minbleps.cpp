@@ -1,7 +1,6 @@
 #include <mutex>
 #include "AudioPlatform/AudioVisual.h"
 #include "AudioPlatform/FFT.h"
-#include "AudioPlatform/Helpers.h"
 #include "AudioPlatform/Synths.h"
 
 using namespace ap;
@@ -12,8 +11,11 @@ struct SawMinBLEP : SamplePlayer {
     increment = hz / sampleRate;
     // SamplePlayer::frequency(hz * 3);
   }
+
   void period(float s) { frequency(1 / s); }
+
   virtual float operator()() { return nextValue(); }
+
   virtual float nextValue() {
     //    float returnValue = phase;
     phase += increment;
@@ -34,6 +36,7 @@ struct SawMinBLEP : SamplePlayer {
 
 struct App : AudioVisual {
   const unsigned historySize = 4 * blockSize;
+
   FFT fft;
 
   SawMinBLEP saw;

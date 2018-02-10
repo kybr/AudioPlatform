@@ -10,3 +10,6 @@
 [submodule "AudioFFT"]
 	path = external/AudioFFT
 	url = https://github.com/HiFi-LoFi/AudioFFT
+[submodule "pffft"]
+	path = pffft
+	url = https://github.com/marton78/pffft

@@ -1,24 +1,20 @@
-# Karl Yerkes
-# karl.yerkes@gmail.com
-# 2017-11-03
-# MAT 240C
-#
-#
 .SUFFIXES:
+
+EXE = $(MAKECMDGOALS)
 
 CXX=
 CXX += c++
-CXX += -std=c++11
+CXX += -std=c++14
+#CXX += -g
 CXX += -Wall
-CXX += -Wformat
-CXX += -g
+CXX += -Wextra
+CXX += -Wno-unused-parameter
+CXX += -Werror
+CXX += -O3
 
 INC=
-# AudioPlatform
 INC += -I ./
-# rtaudio, rtmidi, AudioFFT, AudioFile
 INC += -I external/ 
-# imgui
 INC += -I external/imgui/
 INC += -I external/imgui/examples/opengl2_example/
 
@@ -27,10 +23,8 @@ LIB=
 UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S), Linux) #LINUX
-	ECHO_MESSAGE = "Linux"
 
 	CXX += -D__LINUX_ALSA__
-
 	LIB += -lpthread
 	LIB += -lglfw
 	LIB += -ldl
@@ -39,7 +33,6 @@ ifeq ($(UNAME_S), Linux) #LINUX
 endif
 
 ifeq ($(UNAME_S), Darwin) #APPLE
-	ECHO_MESSAGE = "Mac OS X"
 
 	CXX += -D__MACOSX_CORE__
 
@@ -54,81 +47,37 @@ ifeq ($(UNAME_S), Darwin) #APPLE
 
 # need these?
 	LIB += -framework OpenGL
-	LIB += -framework Cocoa
-	LIB += -framework IOKit
-	LIB += -framework CoreVideo
+#LIB += -framework Cocoa
+#LIB += -framework IOKit
+#LIB += -framework CoreVideo
 endif
 
 ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
 endif
 
 OBJ=
-OBJ += external/rtaudio/RtAudio.o
-OBJ += external/rtmidi/RtMidi.o
+OBJ += external/AudioFFT/AudioFFT.o
 OBJ += external/imgui/examples/opengl2_example/imgui_impl_glfw.o
 OBJ += external/imgui/imgui.o
 OBJ += external/imgui/imgui_demo.o
 OBJ += external/imgui/imgui_draw.o
-OBJ += external/AudioFFT/AudioFFT.o
+OBJ += external/rtaudio/RtAudio.o
+OBJ += external/rtmidi/RtMidi.o
 OBJ += source/AudioVisual.o
+OBJ += source/MIDI.o
+OBJ += source/Wav.o
+OBJ += source/FFT.o
+
+libap.a: $(OBJ)
+	ar r $@ $^
+
+$(EXE): $(EXE).cpp libap.a
+	$(CXX) $(INC) -o $@.exe $^ $(LIB)
 
 %.o: %.cpp
-	$(CXX) $(INC) -c -o $@ $<
+	$(CXX) $(INC) -c -o $@ $^
+
+%.a: %.o
 
 %.o: %.c
 	cc $(INC) -c -o $@ $<
-
-EXE=
-EXE += app
-EXE += example/fm-synth
-EXE += example/formant-synth
-EXE += example/sampler
-EXE += example/quasi-band-limited-fm
-EXE += tool/read-wav
-EXE += tool/write-wav
-EXE += tool/sine
-EXE += tool/sawtooth
-EXE += tool/sine-sweep
-EXE += tool/fft-synth
-
-_: $(EXE)
-
-app: app.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB) 
-
-example/sampler: example/sampler.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB) 
-
-example/formant-synth: example/formant-synth.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB) 
-
-example/fm-synth: example/fm-synth.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB) 
-
-tool/read-wav: tool/read-wav.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB)
-
-tool/write-wav: tool/write-wav.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB)
-
-tool/sine: tool/sine.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB)
-
-tool/sawtooth: tool/sawtooth.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB)
-
-tool/sine-sweep: tool/sine-sweep.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB)
-
-tool/additive-synth: tool/additive-synth.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB)
-
-tool/fft-synth: tool/fft-synth.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB)
-
-example/quasi-band-limited-fm: example/quasi-band-limited-fm.o $(OBJ)
-	$(CXX) -o $@ $^ $(LIB)
-
-
-clean:
-	rm -f $(OBJ) $(EXE)
