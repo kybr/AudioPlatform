@@ -63,8 +63,9 @@ OBJ += source/MIDI.o
 OBJ += source/Wav.o
 OBJ += source/FFT.o
 
-libap.a: $(OBJ)
+libap.a: $(OBJ) AudioPlatform/AudioVisual.h AudioPlatform/FFT.h AudioPlatform/Globals.h AudioPlatform/MIDI.h AudioPlatform/Synths.h AudioPlatform/Wav.h
 	ar r $@ $^
+
 
 $(EXE): $(EXE).cpp libap.a
 	$(CXX) $(INC) -o $@.exe $^ $(LIB)

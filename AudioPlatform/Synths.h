@@ -71,6 +71,7 @@ struct Array {
       for (unsigned i = 0; i < n; ++i) data[i] = 0.0f;
     }
   }
+  void zeros(unsigned n) { resize(n); }
 
   float get(const float index) const {
     const unsigned i = floor(index);
@@ -88,6 +89,7 @@ struct Array {
     data[j] += value * t;
   }
 };
+typedef Array FloatArrayWithLinearInterpolation;
 
 struct Table : Phasor, Array {
   Table(unsigned size = 4096) { resize(size); }
