@@ -1,4 +1,3 @@
-#!/bin/sh
-
-make $1
-$1.exe
+#!/bin/bash
+APP=${1%.*}
+make $APP && $APP.exe

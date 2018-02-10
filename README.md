@@ -9,15 +9,14 @@ Goals:
 - Permissive licenses
 - Portable; It should build and run on:
   + Linux
-  + Windows
   + macOS
-  + The browser via [Emscripten](https://github.com/kripken/emscripten)
+  + (TBD) Windows
+  + (TBD) The browser via [Emscripten](https://github.com/kripken/emscripten)
 
 ![](Formant-Synth.png)
 
 
 ## Getting started
-
 
 - Linux
 
@@ -30,3 +29,9 @@ Goals:
 - macOS
 
   First, ensure that the _glfw_ library is installed with `brew install glfw`. On the terminal, use the `make` command to build this framework. Once built, run by saying `./app` on the terminal.
+
+- - - 
+
+To build and run an example, use the `run` script. For instance, `./run example/simple.cpp` will build and run the example `example/simple.cpp`
+
+This works for any .cpp files in some subfolder of this repo, so if you make a folder `foo` and a file `foo/bar.cpp`, you should be able to build and run with `./run foo/bar.cpp`.
