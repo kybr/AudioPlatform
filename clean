@@ -1,6 +1,7 @@
 #!/bin/sh
-
-find . -name \*.a -print -exec rm {} \;
-find . -name \*.o -print -exec rm {} \;
-find . -name \*.exe -print -exec rm {} \;
-find . -name \*.dSYM -print -exec rm {} \;
+WHERE=$((RANDOM))$((RANDOM))
+mkdir -p trash/$WHERE
+find . -name \*.a -print -exec mv -f {} trash/$WHERE \;
+find . -name \*.o -print -exec mv -f {} trash/$WHERE \;
+find . -name \*.exe -print -exec mv -f {} trash/$WHERE \;
+find . -name \*.dSYM -print -exec mv -f {} trash/$WHERE \;
