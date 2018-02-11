@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
   unsigned windowSize = nextPowerOfTwo(windowSeconds * sampleRate);
 
   Array window, copy;
-  hanning(window, windowSize);
+  hann(window, windowSize);
   copy.resize(windowSize);
 
   FFT fft;
@@ -61,6 +61,10 @@ int main(int argc, char* argv[]) {
     });
 
     // printf("%u| ", frame);
+
+    // sort by frequency, ascending
+    sort(peak.begin(), peak.begin() + 16,
+         [&](unsigned a, unsigned b) { return a < b; });
 
     for (unsigned i = 0; i < 16; ++i) {
       // printf("%u ", peak[i]);
