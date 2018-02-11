@@ -13,12 +13,9 @@
 
 #include <map>
 
-namespace ap {
+#include "AudioPlatform/Functions.h"
 
-float mtof(float m);
-float ftom(float f);
-float dbtoa(float db);
-float atodb(float a);
+namespace ap {
 
 class AudioVisual {
  public:

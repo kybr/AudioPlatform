@@ -60,10 +60,22 @@ OBJ += external/rtaudio/RtAudio.o
 OBJ += external/rtmidi/RtMidi.o
 OBJ += source/AudioVisual.o
 OBJ += source/MIDI.o
+OBJ += source/Functions.o
+OBJ += source/Types.o
 OBJ += source/Wav.o
 OBJ += source/FFT.o
 
-libap.a: $(OBJ) AudioPlatform/AudioVisual.h AudioPlatform/FFT.h AudioPlatform/Globals.h AudioPlatform/MIDI.h AudioPlatform/Synths.h AudioPlatform/Wav.h
+HDR=
+HDR += AudioPlatform/AudioVisual.h
+HDR += AudioPlatform/FFT.h
+HDR += AudioPlatform/Globals.h
+HDR += AudioPlatform/MIDI.h
+HDR += AudioPlatform/Functions.h
+HDR += AudioPlatform/Types.h
+HDR += AudioPlatform/Synths.h
+HDR += AudioPlatform/Wav.h
+
+libap.a: $(OBJ) $(HDR)
 	ar r $@ $^
 
 
