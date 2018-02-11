@@ -19,7 +19,7 @@ void hann(Array& window, unsigned size) {
 void normalize(float* data, unsigned size) {
   float max = 0;
   for (unsigned i = 0; i < size; ++i)
-    if (max > abs(data[i])) max = data[i];
+    if (max > std::abs(data[i])) max = data[i];
   for (unsigned i = 0; i < size; ++i) data[i] /= max;
 }
 
