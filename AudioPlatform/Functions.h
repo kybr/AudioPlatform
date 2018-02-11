@@ -5,11 +5,12 @@
 
 namespace ap {
 
-void hanning(Array& window, unsigned size);
+void hann(Array& window, unsigned size);
 float mtof(float m);
 float ftom(float f);
 float dbtoa(float db);
 float atodb(float a);
+void normalize(float* data, unsigned size);
 
 }  // namespace ap
 #endif
