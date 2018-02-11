@@ -8,45 +8,43 @@
 #include "AudioPlatform/FFT.h"
 #include "AudioPlatform/Synths.h"
 
+using namespace std;
+using namespace ap;
+
 template <typename Out>
-void split(const std::string& s, char delim, Out result) {
-  std::stringstream ss(s);
-  std::string item;
-  while (std::getline(ss, item, delim)) {
+void split(const string& s, char delim, Out result) {
+  stringstream ss(s);
+  string item;
+  while (getline(ss, item, delim)) {
     *(result++) = item;
   }
 }
 
-std::vector<std::string> split(const std::string& s, char delim) {
-  std::vector<std::string> elems;
-  split(s, delim, std::back_inserter(elems));
+vector<string> split(const string& s, char delim) {
+  vector<string> elems;
+  split(s, delim, back_inserter(elems));
   return elems;
 }
-
-using namespace ap;
 
 struct Data {
   float frequency, magnitude;
 };
+vector<vector<Data>> data;
 
-void load(std::string dataFile, std::vector<std::vector<Data>>& data) {
-  std::ifstream in(dataFile);
-  std::string line;
+void load(string dataFile, vector<vector<Data>>& data) {
+  ifstream in(dataFile);
+  if (!in.good()) {
+    printf("ERROR: failed to load file: %s\n", dataFile.c_str());
+    exit(10);
+  }
+  string line;
   while (getline(in, line)) {
-    std::vector<std::string> dataPoint = split(line, ' ');
-    data.push_back(std::vector<Data>());
+    vector<string> dataPoint = split(line, ' ');
+    data.push_back(vector<Data>());
     for (auto& s : dataPoint) {
-      std::vector<std::string> pair = split(s, ':');
+      vector<string> pair = split(s, ':');
       data.back().push_back({stof(pair[0]), stof(pair[1])});
     }
-    if (dataPoint.size() != 16) {
-      printf("ERROR\n");
-      exit(10);
-    }
-  }
-  if (data.size() != 880) {
-    printf("ERROR\n");
-    exit(10);
   }
 }
 
@@ -54,33 +52,38 @@ struct App : AudioVisual {
   const unsigned historySize = 4 * blockSize;
   FFT fft;
 
-  Sine sine[16];
-  Line gain[16];
-  Line freq[16];
+  vector<Sine> sine;
+  vector<Line> gain;
+  vector<Line> freq;
   Line masterGain;
   Line position;
 
-  std::vector<std::vector<Data>> data;
-
-  std::mutex m;
-  std::vector<float> history, _history;
+  mutex m;
+  vector<float> history, _history;
 
   void setup() {
     history.resize(historySize, 0);
     _history.resize(historySize, 0);
     fft.setup(historySize);
 
-    load("media/TingTing.wav.txt", data);
+    sine.resize(data[0].size());
+    gain.resize(data[0].size());
+    freq.resize(data[0].size());
+
+    for (unsigned i = 0; i < data[0].size(); ++i) {
+      freq[i].milliseconds = 15;
+      gain[i].milliseconds = 15;
+    }
   }
 
   void audio(float* out) {
     static unsigned n = 0;
 
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
-      for (unsigned i = 0; i < 16; ++i) sine[i].frequency(freq[i]());
+      for (unsigned i = 0; i < sine.size(); ++i) sine[i].frequency(freq[i]());
       float f = 0;
-      for (unsigned i = 0; i < 16; ++i) f += sine[i]() * gain[i]();
-      f /= 16;
+      for (unsigned i = 0; i < sine.size(); ++i) f += sine[i]() * gain[i]();
+      f /= sine.size();
       f *= masterGain();
       out[i + 1] = out[i + 0] = f;
 
@@ -191,4 +194,12 @@ struct App : AudioVisual {
   }
 };
 
-int main() { App().start(); }
+int main(int argc, char* argv[]) {
+  if (argc == 2) {
+    load(argv[1], data);
+    printf("loaded %s\n", argv[1]);
+  } else
+    load("media/TingTing.wav.txt", data);
+
+  App().start();
+}
