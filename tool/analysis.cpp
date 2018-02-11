@@ -14,7 +14,7 @@ using namespace ap;
 using namespace std;
 
 void findPeak(vector<float>& signal, vector<unsigned>& peak) {
-  for (unsigned i = 1; i < signal.size(); ++i)
+  for (unsigned i = 1; i < signal.size() - 1; ++i)
     if (signal[i - 1] < signal[i])
       if (signal[i + 1] < signal[i]) peak.push_back(i);
 }
@@ -46,7 +46,8 @@ int main(int argc, char* argv[]) {
   vector<Data> data;
   float maximum = 0;
   unsigned hop = windowSize / hopFactor;
-  for (unsigned frame = 0; frame * hop < player.size - windowSize; ++frame) {
+  for (unsigned frame = 0; frame * hop < player.size - windowSize * 2;
+       ++frame) {
     //    printf("%u/%u %u\n", frame * hop, player.size, windowSize);
 
     memcpy(&copy[0], &player[frame * hop], sizeof(float) * windowSize);
@@ -59,12 +60,20 @@ int main(int argc, char* argv[]) {
       return fft.magnitude[a] > fft.magnitude[b];
     });
 
+    // printf("%u| ", frame);
+
     for (unsigned i = 0; i < 16; ++i) {
-      float m = fft.magnitude[peak[i]];
+      // printf("%u ", peak[i]);
+      // printf("\n");
+      unsigned index = peak[i];
+      float m =
+          // This is broken; There's some sort of failure
+          index < fft.magnitude.size() ? fft.magnitude[index] : 0;
       if (maximum < m) maximum = m;
       data.push_back(
           {frame, peak[i] * sampleRate / 2 / fft.magnitude.size(), m});
     }
+    // printf("\n");
   }
   // return 0;
   unsigned frame = 0;

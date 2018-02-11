@@ -56,7 +56,8 @@ struct Table : Phasor, Array {
 
   float operator()() { return nextValue(); }
   float nextValue() {
-    const float v = get(phase * size);
+    const float index = phase * size;
+    const float v = get(index);
     Phasor::nextValue();
     return v;
   }
