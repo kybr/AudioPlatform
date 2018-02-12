@@ -23,7 +23,7 @@ struct App : AudioVisual {
   std::vector<float> hann;
 
   void setup() {
-    player.load("TingTing.wav");
+    player.load("media/TingTing.wav");
     history.resize(historySize, 0);
     _history.resize(historySize, 0);
     hann.resize(historySize);
