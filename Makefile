@@ -4,13 +4,13 @@ EXE = $(MAKECMDGOALS)
 
 CXX=
 CXX += c++
-CXX += -std=c++14
-#CXX += -g
+CXX += -std=c++11
+CXX += -O0
+CXX += -g
 CXX += -Wall
 CXX += -Wextra
 CXX += -Wno-unused-parameter
 #CXX += -Werror
-CXX += -O3
 
 INC=
 INC += -I ./
