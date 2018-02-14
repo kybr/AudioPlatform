@@ -1,3 +1,4 @@
 #!/bin/bash
 APP=${1%.*}
-make $APP && $APP.exe
+shift 1
+make $APP && $APP.exe $@
