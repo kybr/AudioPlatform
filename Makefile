@@ -6,7 +6,7 @@ CXX=
 CXX += c++
 CXX += -std=c++11
 CXX += -O0 # 03
-CXX += -g
+CXX += -gsplit-dwarf
 CXX += -Wall
 CXX += -Wextra
 CXX += -Wno-unused-parameter

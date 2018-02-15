@@ -48,8 +48,8 @@ struct Phasor {
 struct Table : Phasor, Array {
   Table(unsigned size = 4096) { resize(size); }
 
-  float operator()() { return nextValue(); }
-  float nextValue() {
+  virtual float operator()() { return nextValue(); }
+  virtual float nextValue() {
     const float index = phase * size;
     const float v = get(index);
     Phasor::nextValue();
@@ -58,7 +58,7 @@ struct Table : Phasor, Array {
 };
 
 struct Noise : Table {
-  Noise(unsigned size = 10000) {
+  Noise(unsigned size = 20 * 44100) {
     resize(size);
     for (unsigned i = 0; i < size; ++i)
       data[i] = 2.0f * (random() / float(RAND_MAX)) - 1.0f;
