@@ -7,19 +7,19 @@
 using namespace ap;
 
 struct Delay : Array {
-  float ago;
+  float delay;
   unsigned next;
   Delay(float capacity = 2) {
     resize(ceil(capacity * sampleRate));
     next = 0;
   }
 
-  void period(float s) { ago = s * sampleRate; }
+  void period(float s) { delay = s * sampleRate; }
   void ms(float ms) { period(ms / 1000); }
   void frequency(float f) { period(1 / f); }
 
   float effectValue(float sample) {
-    float index = next - ago;
+    float index = next - delay;
     if (index < 0) index += size;
     float returnValue = get(index);
     data[next] = sample;
@@ -60,7 +60,7 @@ struct App : AudioVisual {
 
     for (unsigned i = 0; i < 6; i++) delay[i].ms(100.0 / pow(3.0, i));
     float data[]{200.0f, 300.0f, 500.0f, 700.0f, 1100.0f, 1300.0f};
-    for (unsigned i = 0; i < 6; i++) filter[i].apf(data[i], 8);
+    for (unsigned i = 0; i < 6; i++) filter[i].apf(data[i], 0.7);
 
     history.resize(historySize, 0);
     _history.resize(historySize, 0);
@@ -79,7 +79,7 @@ struct App : AudioVisual {
       float a =
           filter[0](filter[1](filter[2](filter[3](filter[4](filter[5](f))))));
       float d = 0;
-      for (unsigned i = 0; i < 6; i++) d += delay[i](a);
+      for (unsigned i = 0; i < 6; i++) d += delay[i](a * 2);
       f += 0.5 * d;
       out[i + 1] = out[i + 0] = f * gain();
       _history[n] = f;

@@ -7,7 +7,7 @@
 #include "AudioPlatform/Functions.h"
 #include "AudioPlatform/Synths.h"
 
-const float windowSeconds = 0.03;
+const float windowSeconds = 0.05;
 const unsigned hopFactor = 8;
 
 using namespace ap;
