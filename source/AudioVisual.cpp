@@ -21,6 +21,7 @@ static void error_callback(int error, const char *description) {
   fprintf(stderr, "Error %d: %s\n", error, description);
 }
 
+#ifndef __MACOSX_CORE__
 static int chooseDevice(RtAudio &audio) {
   RtAudio::DeviceInfo info;
 
@@ -50,6 +51,7 @@ static int chooseDevice(RtAudio &audio) {
   }
   return 0;
 }
+#endif
 
 static int cb(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
               double streamTime, RtAudioStreamStatus status, void *data) {
@@ -97,7 +99,11 @@ void AudioVisual::start() {
   oParams.deviceId = 0;
   oParams.nChannels = channelCount;
   oParams.firstChannel = 0;
+#ifdef __MACOSX_CORE__
+  oParams.deviceId = dac->getDefaultOutputDevice();
+#else
   oParams.deviceId = chooseDevice(*dac);
+#endif
 
   RtAudio::StreamOptions options;
   // options.flags = RTAUDIO_HOG_DEVICE;

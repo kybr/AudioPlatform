@@ -10,7 +10,7 @@ struct App : AudioVisual {
   Line frequency;
 
   Timer timer;
-  void setup() { timer.period(500); }
+  void setup() { timer.ms(500); }
 
   void audio(float* out) {
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {

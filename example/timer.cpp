@@ -1,3 +1,4 @@
+#include <cmath>
 #include <mutex>
 #include "AudioPlatform/AudioVisual.h"
 #include "AudioPlatform/FFT.h"
@@ -5,25 +6,62 @@
 
 using namespace ap;
 
+struct Delay : Array {
+  float ago;
+  unsigned next;
+  Delay(float capacity = 2) {
+    resize(ceil(capacity * sampleRate));
+    next = 0;
+  }
+
+  void period(float s) { ago = s * sampleRate; }
+  void ms(float ms) { period(ms / 1000); }
+  void frequency(float f) { period(1 / f); }
+
+  float effectValue(float sample) {
+    float index = next - ago;
+    if (index < 0) index += size;
+    float returnValue = get(index);
+    data[next] = sample;
+    next++;
+    if (next >= size) next = 0;
+    return returnValue;
+  }
+  float operator()(float sample) { return effectValue(sample); }
+};
+
 void make_hann(std::vector<float>& window) {
   for (unsigned n = 0; n < window.size(); ++n)
     window[n] = (1 - cos(2 * M_PI * n / (window.size() - 1))) / 2;
+}
+
+float r(float low, float high) {
+  return low + (high - low) * rand() / RAND_MAX;
 }
 
 struct App : AudioVisual {
   const unsigned historySize = 4 * blockSize;
   FFT fft;
 
-  SamplePlayer player;
+  Timer timer;
+  Sine sine;
   Line gain;
   Line frequency;
+  Delay delay[6];
+  Biquad filter[6];
 
   std::mutex m;
   std::vector<float> history, _history;
   std::vector<float> hann;
 
   void setup() {
-    player.load("media/TingTing.wav");
+    timer.ms(130);
+    frequency.milliseconds = 10;
+
+    for (unsigned i = 0; i < 6; i++) delay[i].ms(100.0 / pow(3.0, i));
+    float data[]{200.0f, 300.0f, 500.0f, 700.0f, 1100.0f, 1300.0f};
+    for (unsigned i = 0; i < 6; i++) filter[i].apf(data[i], 8);
+
     history.resize(historySize, 0);
     _history.resize(historySize, 0);
     hann.resize(historySize);
@@ -35,8 +73,14 @@ struct App : AudioVisual {
     static unsigned n = 0;
 
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
-      player.frequency(frequency());
-      float f = player();
+      if (timer()) frequency.set(mtof(r(0, 127)));
+      sine.frequency(frequency());
+      float f = sine();
+      float a =
+          filter[0](filter[1](filter[2](filter[3](filter[4](filter[5](f))))));
+      float d = 0;
+      for (unsigned i = 0; i < 6; i++) d += delay[i](a);
+      f += 0.5 * d;
       out[i + 1] = out[i + 0] = f * gain();
       _history[n] = f;
       n++;
@@ -70,13 +114,6 @@ struct App : AudioVisual {
       static float db = -60.0f;
       ImGui::SliderFloat("Level (dB)", &db, -60.0f, 3.0f);
       gain.set(dbtoa(db), 50.0f);
-
-      // make a slider for note value (frequency)
-      static float rate = 1.0;
-      ImGui::SliderFloat("Rate", &rate, -1.0, 2.1);
-      frequency.set(rate, 20.0f);
-
-      //
 
       // get the lock (mutex); this will block, waiting for the audio thread to
       // release the lock. lock() waits while try_lock() does not.

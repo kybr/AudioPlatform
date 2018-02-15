@@ -12,7 +12,8 @@ namespace ap {
 
 struct Timer {
   float phase = 0.0f, increment = 0.0f;
-  void period(float s) { increment = 1.0f / (s * sampleRate); }
+  void period(float s) { increment = 1.0f / (s * sampleRate * 2); }
+  void ms(float ms) { period(ms / 1000); }
   void frequency(float hz) { period(1 / hz); }
 
   virtual bool operator()() { return nextValue(); }

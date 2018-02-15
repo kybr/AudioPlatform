@@ -83,10 +83,10 @@ struct App : AudioVisual {
     gain.resize(data[0].size());
     freq.resize(data[0].size());
 
-    //    for (unsigned i = 0; i < data[0].size(); ++i) {
-    //      freq[i].milliseconds = 15;
-    //      gain[i].milliseconds = 15;
-    //    }
+    for (unsigned i = 0; i < data[0].size(); ++i) {
+      freq[i].milliseconds = 15;
+      gain[i].milliseconds = 15;
+    }
   }
 
   void audio(float* out) {
@@ -98,6 +98,7 @@ struct App : AudioVisual {
       for (unsigned i = 0; i < sine.size(); ++i) f += sine[i]() * gain[i]();
       f /= sine.size();
       f *= masterGain();
+      f *= 3;  // because its sorta quiet
       out[i + 1] = out[i + 0] = f;
 
       _history[n] = f;

@@ -1,0 +1,10 @@
+#!/bin/bash
+APP=${1%.*}
+shift 1
+DEBUG=gdb
+case $OSTYPE in 
+  *darwin*)
+    DEBUG=lldb
+    ;;
+esac
+make $APP && $DEBUG $APP.exe $@
