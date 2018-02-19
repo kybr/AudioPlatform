@@ -1,8 +1,12 @@
 # AudioPlatform
 
-This is a mini-framework for teaching digital audio programming.
+This is a framework for learning/teaching digital audio programming.
 
-Goals:
+![](Formant-Synth.png)
+
+- - -
+
+**Goals:**
 
 - Few dependencies
 - Conceptually simple implementations, when possible
@@ -13,24 +17,31 @@ Goals:
   + (TBD) Windows
   + (TBD) The browser via [Emscripten](https://github.com/kripken/emscripten)
 
-![](Formant-Synth.png)
+**Status:**
 
+Currently GLWF3 is the only library dependency. RtAudio and others build along with user code.
 
-## Getting started
+- - -
+
+## Getting Started
+
+Media (e.g., .wav and .png files) are held using [Git Large File Storage](https://git-lfs.github.com), so you'll need to install `git-lfs` on your system.
+
+Prepare your development environment:
 
 - Linux
 
-  On apt-based systems, you'll need `libglfw3-dev` and `libasound2-dev`. The `build-essential` package will install everything you need to compile and link. 
-
-- Windows
-
-  Execute the `build.bat` script from a Visual Studio Developer's Terminal. If this does not work, try rebuilding rtaudio and/or ImGui; then try again. The build process creates a file `Debug\app.exe` which you may execute by typing that on the Terminal.
+  On apt-based systems, you'll need `libglfw3-dev` and `libasound2-dev`. The `build-essential` package will install everything you need to compile and link.
 
 - macOS
 
-  First, ensure that the _glfw_ library is installed with `brew install glfw`. On the terminal, use the `make` command to build this framework. Once built, run by saying `./app` on the terminal.
+  First, install Xcode with `xcode-select --install` on the terminal. Then, install [Homebrew](https://brew.sh). Finally, install the _glfw_ library with `brew install glfw`.
 
-- - - 
+- Windows (TDB)
+
+  TDB: This will probably use MinGW, but maybe `choco`, `vcbuildtools`, and `vcpkg`.
+
+### Building examples
 
 To build and run an example, use the `run` script. For instance, `./run example/simple.cpp` will build and run the example `example/simple.cpp`
 
