@@ -51,6 +51,14 @@ struct App : AudioVisual {
     history.resize(historySize, 0);
     _history.resize(historySize, 0);
     fft.setup(historySize);
+
+    // this loaded sample is the result of...
+    // - taking the bandlimited impulse into the cepstral domain
+    // - zeroing the top 50% of the cepstral data
+    // - bringing this back into the original real/time domain
+    // - integrating
+    // i think that process might be called "liftering"
+    // https://en.wikipedia.org/wiki/Cepstrum#Liftering
     saw.load("media/MinBLEP.wav");
   }
 
