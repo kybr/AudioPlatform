@@ -59,27 +59,6 @@ struct Grain : Array {
 
     return;
 
-    // cepstrum (seems broken)
-    // "inverse Fourier transform of the log-magnitude Fourier spectrum"
-    //
-    // for (unsigned i = 0; i < fft.magnitude.size(); ++i) {
-    //  float windowIndex = hann_window.size * float(i) / fft.magnitude.size();
-    //  fft.magnitude[i] = log(fft.magnitude[i]);
-    //  // fft.magnitude[i] = log(fft.magnitude[i]) *
-    //  // hann_window.get(windowIndex);
-    //  // log(pow(fft.magnitude[i], 2)) * hann_window.get(windowIndex);
-    //}
-    // memset(&fft_input[0], 0, sizeof(float) * fft_input.size());
-    // fft.reverse(&fft_input[0]);
-    // for (unsigned i = 0; i < fft_input.size(); ++i)
-    //  fft_input[i] *= fft_input[i];
-
-    //    for (unsigned i = 0; i < fft_input.size(); ++i)
-    //      printf("%f:%f ", sampleRate / i, fft_input[i]);
-    //    printf("\n");
-
-    // use the fft_input to find the lowest, tallest peak
-
     // autocorrelation method
 
     struct Data {
@@ -101,10 +80,6 @@ struct Grain : Array {
          [](const Data& a, const Data& b) { return a.value > b.value; });
 
     pitch = d[1].frequency;
-
-    // for (unsigned i = 0; i < 10; ++i)
-    //  printf("%f:%f ", d[i].frequency, d[i].value);
-    // printf("\n");
 
     printf("%.3f\t%.3f\t%.3f\t%.3f\n", zcr, rms, centroid, pitch);
   }
