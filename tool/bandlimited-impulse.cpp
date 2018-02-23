@@ -2,6 +2,7 @@
 #include <iostream>
 
 float mtof(float m) { return 8.175799f * pow(2.0f, m / 12.0f); }
+float ftom(float f) { return 12.0f * log2(f / 8.175799f); }
 
 int main() {
   float sampleRate = 44100;
@@ -10,28 +11,34 @@ int main() {
 
   while (midi > 0) {
     float frequency = mtof(midi);
-    float increment = frequency / sampleRate / 2;
-    increment *= M_PI * 2;
+    // printf("%f ", frequency);
 
-    float sum = 0.0f;
-    sum += sin(phase);  // fundamental
+    unsigned highestHarmonic = 1;
+    while (highestHarmonic * frequency < sampleRate / 2) highestHarmonic++;
+    highestHarmonic--;
 
-    float f = frequency;
-    float h = 2;  // harmonics start at 2
-    while (f < sampleRate / 3) {
-      sum += sin(h * phase);
-      f = h * frequency;
-      h++;
-    }
+    // printf("%u ", highestHarmonic);
+
+    float distance = ftom(sampleRate / 2) - ftom(highestHarmonic * frequency);
+    // printf("%f ", distance);
+
+    distance /= 10;
+    if (distance > 1) distance = 1;
+
+    // for each harmonic
+    float sum = distance * sin(highestHarmonic * phase);
+    for (unsigned h = highestHarmonic - 1; h > 0; h--) sum += sin(h * phase);
+    // float sum = 0.0f;
+    // for (unsigned h = highestHarmonic; h > 0; h--) sum += sin(h * phase);
 
     // divide out by the number of harmonics because they were all amplitude 1
-    sum /= h;
+    sum /= highestHarmonic;
 
     // spit out the result
     printf("%f\n", sum);
 
     // move the phase forward
-    phase += increment;
+    phase += 2 * M_PI * frequency / sampleRate / 2;
 
     // totally arbitrary; no meaning; just tuned to be about right
     midi -= 0.001;

@@ -1,21 +1,24 @@
 #include <mutex>
 #include "AudioPlatform/AudioVisual.h"
+#include "AudioPlatform/SoundDisplay.h"
 #include "AudioPlatform/Synths.h"
 
 using namespace ap;
 
 struct App : AudioVisual {
+  SoundDisplay soundDisplay;
   Sine sine;
   Line gain;
   Line frequency;
 
-  void setup() {}
+  void setup() { soundDisplay.setup(4 * blockSize); }
 
   void audio(float* out) {
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
       sine.frequency(frequency());
       float f = sine() * gain();
       out[i + 1] = out[i + 0] = f;
+      soundDisplay(f);
     }
   }
 
@@ -39,6 +42,8 @@ struct App : AudioVisual {
       static float note = 60;
       ImGui::SliderFloat("Frequency (MIDI)", &note, 0, 127);
       frequency.set(mtof(note), 50.0f);
+
+      soundDisplay();
 
       ImGui::End();
     }

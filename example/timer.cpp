@@ -2,6 +2,7 @@
 #include <mutex>
 #include "AudioPlatform/AudioVisual.h"
 #include "AudioPlatform/FFT.h"
+#include "AudioPlatform/SoundDisplay.h"
 #include "AudioPlatform/Synths.h"
 
 using namespace ap;
@@ -40,6 +41,7 @@ float r(float low, float high) {
 }
 
 struct App : AudioVisual {
+  SoundDisplay soundDisplay;
   const unsigned historySize = 4 * blockSize;
   FFT fft;
 

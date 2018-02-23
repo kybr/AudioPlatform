@@ -1,10 +1,12 @@
 #include <mutex>
 #include "AudioPlatform/AudioVisual.h"
+#include "AudioPlatform/SoundDisplay.h"
 #include "AudioPlatform/Synths.h"
 
 using namespace ap;
 
 struct App : AudioVisual {
+  SoundDisplay soundDisplay;
   Sine sine;
   Line gain;
   Line frequency;
