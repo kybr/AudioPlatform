@@ -16,6 +16,12 @@ void hann(Array& window, unsigned size) {
     window[i] = (1 - cos(2 * M_PI * i / size)) / 2;
 }
 
+void hann(std::vector<float>& window, unsigned size) {
+  window.resize(size);
+  for (unsigned i = 0; i < size; ++i)
+    window[i] = (1 - cos(2 * M_PI * i / size)) / 2;
+}
+
 void normalize(float* data, unsigned size) {
   float max = 0;
   for (unsigned i = 0; i < size; ++i)

@@ -3,9 +3,12 @@
 
 #include "AudioPlatform/Types.h"
 
+#include <vector>
+
 namespace ap {
 
 void hann(Array& window, unsigned size);
+void hann(std::vector<float>& window, unsigned size);
 float mtof(float m);
 float ftom(float f);
 float dbtoa(float db);

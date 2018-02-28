@@ -13,3 +13,6 @@
 [submodule "pffft"]
 	path = pffft
 	url = https://github.com/marton78/pffft
+[submodule "external/ffts"]
+	path = external/ffts
+	url = https://github.com/anthonix/ffts

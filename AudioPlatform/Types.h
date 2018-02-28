@@ -3,6 +3,7 @@
 
 namespace ap {
 
+// why not inherit from vector<float>?
 struct Array {
   float* data = nullptr;
   unsigned size = 0;
@@ -18,6 +19,10 @@ struct Array {
   float get(const float index) const;
 
   void add(const float index, const float value);
+
+  // deep-copy copy constructor
+  // Array(const Array& other);
+  // also do assignment
 };
 
 typedef Array FloatArrayWithLinearInterpolation;

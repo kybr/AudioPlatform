@@ -16,6 +16,8 @@ INC += -I ./
 INC += -I external/ 
 INC += -I external/imgui/
 INC += -I external/imgui/examples/opengl2_example/
+INC += -I external/ffts/include/
+INC += -I external/ffts/src/
 
 LIB=
 
@@ -74,8 +76,13 @@ HDR += AudioPlatform/Types.h
 HDR += AudioPlatform/Synths.h
 HDR += AudioPlatform/Wav.h
 
-libap.a: $(OBJ) $(HDR)
-	ar r $@ $^
+LIB += external/ffts/libffts.a
+
+libap.a: $(OBJ) external/ffts/libffts.a
+	ar r $@ $^ 
+
+external/ffts/libffts.a:
+	./build_dependencies
 
 
 $(EXE): $(EXE).cpp libap.a

@@ -21,8 +21,30 @@ void FFT::forward(const float* data) {
   // convert to (magnitude, phase) representation
   for (unsigned i = 0; i < phase.size(); ++i) {
     float m = sqrt(real[i] * real[i] + imag[i] * imag[i]);
-    // XXX is this the best way to compute phase?
-    float p = (real[i] == 0.0f) ? M_PI / 2 : atan(imag[i] / real[i]);
+
+    // XXX this (below) is not good enough...
+    //  float p = (real[i] == 0.0f) ? M_PI / 2 : atan(imag[i] / real[i]);
+
+    // calculating phase is this complicated...
+    // https://stackoverflow.com/questions/9453714/converting-real-and-imaginary-fft-output-to-frequency-and-amplitude#9454906
+    float p = 0;
+    if (real[i] == 0.0f)
+      if (imag[i] > 0.0f)
+        // pi/2 on the positive y-axis
+        p = M_PI / 2;
+      else
+        // -pi/2 on the negative y-axis
+        p = -M_PI / 2;
+    else if (real[i] > 0)
+      // arctan(b/a) in quadrants I and IV
+      p = atan(imag[i] / real[i]);
+    else if (imag[i] > 0.0f)
+      // arctan(b/a) + pi in quadrant II
+      p = atan(imag[i] / real[i]) + M_PI;
+    else
+      // arctan(b/a) - pi in quadrant III
+      p = atan(imag[i] / real[i]) - M_PI;
+
     // it is very important that the next lines be separate and after the
     // previous lines because we are modifying data "in place".
     magnitude[i] = m;

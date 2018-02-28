@@ -1,47 +1,38 @@
 #include <cmath>  // std::sin, std::pow, M_PI
 #include <iostream>
 
-double mtof(double m) { return 8.175799 * pow(2.0, m / 12.0); }
-double ftom(double f) { return 12.0 * log2(f / 8.175799); }
+//#define float double
+
+float mtof(float m) { return 8.175799f * pow(2.0f, m / 12.0f); }
 
 int main() {
-  double sampleRate = 44100;
-  double midi = ftom(22050);
-  double phase = 0;
+  float sampleRate = 44100;
+  float midi = 127;
+  float phase = 0;
 
-  unsigned _highestHarmonic = 1;
+  while (midi > 0) {
+    float frequency = mtof(midi);
+    float increment = frequency / sampleRate / 2;
+    increment *= M_PI * 2;
 
-  while (midi > 0) {  // ftom(0.999999)) {
-    double frequency = mtof(midi);
-
-    unsigned highestHarmonic = 1;
-    while (highestHarmonic * frequency < sampleRate / 2) highestHarmonic++;
-    highestHarmonic--;
-
-    if (highestHarmonic != _highestHarmonic) {
+    float sum = 0.0f;
+    float h = 1;
+    while (h * frequency < sampleRate / 2) {
+      sum += sin((double)h * phase);
+      h++;
     }
-
-    //  printf("f:%f ", frequency);
-    //  printf("h:%u ", highestHarmonic);
-
-    // for each harmonic
-    double sum = 0;
-    for (unsigned h = highestHarmonic; h > 0; h--) sum += sin(h * phase);
+    // printf("%f %f\n", frequency, h - 1);
 
     // divide out by the number of harmonics because they were all amplitude 1
-    sum /= (highestHarmonic + 0.44);
-    //    sum *= gain;
+    sum /= h;
 
     // spit out the result
     printf("%f\n", sum);
-    // printf("s:%f\n", sum);
 
     // move the phase forward
-    phase += 2 * M_PI * frequency / sampleRate / 2;
+    phase += increment;
 
     // totally arbitrary; no meaning; just tuned to be about right
-    midi -= 0.0003;
-
-    _highestHarmonic = highestHarmonic;
+    midi -= 0.001;
   }
 }

@@ -13,8 +13,7 @@ struct App : AudioVisual {
   SoundDisplay soundDisplay;
 
   void setup() {
-    player.load("out.wav");
-    // player.load("media/Impulse-Sweep.wav");
+    player.load("media/Impulse-Sweep.wav");
     soundDisplay.setup(4 * blockSize);
   }
 
