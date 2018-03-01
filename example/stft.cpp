@@ -18,6 +18,7 @@ struct STFT : FFT {
     hop = windowSize / 2;
     FFT::setup(windowSize);
     hann(window, windowSize);
+    for (auto& e : window) e = sqrt(e);
 
     //
     //
@@ -35,48 +36,35 @@ struct STFT : FFT {
   }
 
   bool operator()(float f) {
-    // printf("in: n0=%u,n1=%u | ", in[0].n, in[1].n);
+    // assume we did not do an FFT
+    //
     bool returnValue = false;
     for (unsigned i = 0; i < 2; i++) {
       in[i].at(in[i].n) = f * window[in[i].n];
       in[i].n++;
       if (in[i].n >= in[i].size()) {
+        // that f up there was the final sample we needed to
+        // do our next FFT
         in[i].n = 0;
-        FFT::forward(&in[i][0]);  // compute the FFT
+        FFT::forward(&in[i][0]);
         returnValue = true;
-        // return true;
       }
     }
     return returnValue;
   }
 
   float operator()() {
-    // printf("out: n0=%u,n1=%u | size=%u\n", out[0].n, out[1].n, size);
     float sum = 0;
     for (unsigned i = 0; i < 2; i++) {
       if (out[i].n >= out[i].size()) out[i].n = 0;
-      if (out[i].n == 0) FFT::reverse(&out[i][0]);  // compute the IFFT
+      // if we're about to output the very first (0th) sample
+      // of a block, then take the IFFT
+      if (out[i].n == 0) FFT::reverse(&out[i][0]);
       sum += out[i].at(out[i].n) * window[out[i].n];
       out[i].n++;
     }
     return sum;
   }
-
-  /*
-  float operator()() {
-    // printf("out: n0=%u,n1=%u | size=%u\n", out[0].n, out[1].n, size);
-    float sum = 0;
-    for (unsigned i = 0; i < 2; i++) {
-      sum += out[i].at(out[i].n) * window[out[i].n];
-      out[i].n++;
-      if (out[i].n >= out[i].size()) {
-        out[i].n = 0;
-        FFT::reverse(&out[i][0]);  // compute the IFFT
-      }
-    }
-    return sum;
-  }
-  */
 };
 
 struct App : AudioVisual {
@@ -87,21 +75,22 @@ struct App : AudioVisual {
   STFT stft;
 
   void setup() {
-    player.load("media/voice.wav");
-    // player.load("media/TingTing.wav");
-    // printf("got here\n");
+    // player.load("media/voice.wav");
+    player.load("media/TingTing.wav");
     // player.load("media/Impulse-Sweep.wav");
+    // player.load("media/sine.wav");
     soundDisplay.setup(4 * blockSize);
-    stft.setup(blockSize);
+    stft.setup(blockSize * 2);
   }
 
   int bin = 20;
 
-  void audio(float *out) {
+  void audio(float* out) {
     for (unsigned i = 0; i < blockSize * channelCount; i += channelCount) {
       player.frequency(frequency());
       float f = player();
       if (stft(f)) {
+        //
         for (unsigned i = bin; i < stft.magnitude.size() - 1; ++i)
           stft.magnitude[i] = 0;
       }
