@@ -54,7 +54,7 @@ struct MassSpring {
   }
 
   float nextValue() {
-    for (unsigned i = 0; i < stepsPerSample; ++i) step();
+    for (int i = 0; i < stepsPerSample; ++i) step();
     return position;
   }
   float operator()() { return nextValue(); }
@@ -109,7 +109,7 @@ struct App : AudioVisual {
       static float dm = 60.0f;
       ImGui::SliderFloat("Damping (?)", &dm, 0, 1);
       damping.set(1 / mtof(dm * 135));
-      printf("%f\n", 1 / mtof(dm * 135));
+      // printf("%f\n", 1 / mtof(dm * 135));
 
       ImGui::SliderInt("passes (N)", &massSpring.stepsPerSample, 0, 15);
 
