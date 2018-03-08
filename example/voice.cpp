@@ -14,14 +14,6 @@ using namespace std;
 //
 #define double float
 
-// TODO
-//
-// - gather vowel data and interpolate
-// - map synthesis parameters to interface
-// - complete loss model
-// - investigate time-varying model
-//
-
 double vowel[] = {
     1.000000000000000, 0.696969696969697, 0.490909090909092, 2.400000000000000,
     2.400000000000000, 2.400000000000000, 3.200000000000000, 4.139393939393939,
@@ -31,7 +23,6 @@ double vowel[] = {
     2.000000000000000, 3.200000000000000, 3.200000000000000,
 };
 
-template <int N = 23>
 struct Tube {
   // model parameters
   //
@@ -39,11 +30,13 @@ struct Tube {
   double waveSpeed, tractLength, tractSurfaceAreaLeftEnd;
   double gamma, lambda, s0, r1, r2, g1;
 
+  int N;
+
   // state
   //
   double *p0, *p1, *p2, *s;
 
-  Tube() {
+  Tube(unsigned length = 23) : N(length) {
     p0 = new double[N];
     p1 = new double[N];
     p2 = new double[N];
@@ -123,7 +116,7 @@ struct MyApp : AudioVisual {
   Line frequency;
   double width[23];
 
-  Tube<> tube;
+  Tube tube;
   Sine osc;
 
   void setup() { soundDisplay.setup(blockSize * 4); }

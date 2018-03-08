@@ -8,6 +8,14 @@ struct Array {
   float* data = nullptr;
   unsigned size = 0;
 
+  // what vector does
+  /*
+  Array(const Array& other) {
+    resize(other.size);
+    for (unsigned i = 0; i < size; i++) data[i] = other.data[i];
+  }
+  */
+
   virtual ~Array();
 
   float& operator[](unsigned index);

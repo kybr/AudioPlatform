@@ -29,4 +29,15 @@ void normalize(float* data, unsigned size) {
   for (unsigned i = 0; i < size; ++i) data[i] /= max;
 }
 
+float uniform(float low, float high) {
+  return low + (high - low) * float(rand()) / RAND_MAX;
+}
+float uniform(float high) { return uniform(0.0f, high); }
+float map(float value, float low, float high, float low_, float high_) {
+  return low_ + value / (high - low) * (high_ - low_);
+}
+
+// f:(-1, 1) t:(0, 1)
+float distortion(float f, float t) { return pow(atan(t / M_PI / 2), f); }
+
 }  // namespace ap

@@ -14,6 +14,10 @@ float ftom(float f);
 float dbtoa(float db);
 float atodb(float a);
 void normalize(float* data, unsigned size);
+float uniform(float low, float high);
+float uniform(float high = 1.0f);
+float map(float value, float low, float high, float low_, float high_);
+float distortion(float f, float t);
 
 }  // namespace ap
 #endif

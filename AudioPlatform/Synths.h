@@ -88,7 +88,7 @@ struct SamplePlayer : Table {
         filePath.c_str(), &channelCount, &sampleRate, &totalSampleCount);
 
     if (pSampleData == NULL) {
-      printf("ERROR\n");
+      printf("ERROR: failed to open %s\n", filePath.c_str());
       exit(1);
     }
 
