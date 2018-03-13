@@ -16,6 +16,7 @@ INC += -I ./
 INC += -I external/ 
 INC += -I external/imgui/
 INC += -I external/imgui/examples/opengl2_example/
+INC += -I external/glm
 INC += -I external/ffts/include/
 INC += -I external/ffts/src/
 

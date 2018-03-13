@@ -480,6 +480,15 @@ class BiquadWithLines {
   }
 };
 
+struct OnePole {
+  float a0 = 1, b1 = 0, z1 = 0;
+  void frequency(float f) {
+    b1 = exp(-2.0 * M_PI * f);
+    a0 = 1.0 - b1;
+  }
+  float operator()(float in) { return z1 = in * a0 + z1 * b1; }
+};
+
 }  // namespace ap
 
 #endif

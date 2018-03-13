@@ -51,6 +51,13 @@ struct SoundDisplay {
     ImGui::PlotLines("Waveform", &history[0], history.size(), 0, "", FLT_MAX,
                      FLT_MAX, ImVec2(0, 50));
 
+    // if we have overview data, show it
+    // if (overview != nullptr) {
+    //  ImGui::PlotLines("Waveform", &history[0], history.size(), 0, "",
+    //  FLT_MAX,
+    //                   FLT_MAX, ImVec2(0, 50));
+    //}
+
     // make a copy
     float copy[history.size()];
     memcpy(copy, &history[0], history.size() * sizeof(float));
